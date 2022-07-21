@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/bitrise-steplib/bitrise-step-restore-cache/step"
 	"os"
+
+	"github.com/bitrise-steplib/bitrise-step-restore-cache/step"
 
 	"github.com/bitrise-io/go-steputils/v2/stepconf"
 	"github.com/bitrise-io/go-utils/v2/env"
