@@ -43,6 +43,7 @@ func (step RestoreCacheStep) ProcessConfig() (*Config, error) {
 	if err := step.inputParser.Parse(&input); err != nil {
 		return nil, err
 	}
+	stepconf.Print(input)
 
 	if strings.TrimSpace(input.Key) == "" {
 		return nil, fmt.Errorf("required input 'key' is empty")
