@@ -24,6 +24,7 @@ You can also run this step directly with [Bitrise CLI](https://github.com/bitris
 | Key | Description | Flags | Default |
 | --- | --- | --- | --- |
 | `verbose` | Enable logging additional information for debugging | required | `false` |
+| `key` | The key to use to restore the cache | required |  |
 </details>
 
 <details>
