@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.8
-	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.8
+	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.10
 )
 
 require (

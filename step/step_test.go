@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/bitrise-io/go-utils/v2/command"
 	"github.com/bitrise-io/go-utils/v2/env"
 	"github.com/bitrise-io/go-utils/v2/log"
 )
@@ -117,6 +118,62 @@ func Test_evaluateKey(t *testing.T) {
 			}
 			if evaluatedKey != testCase.want {
 				t.Errorf("evaluateKey() = %v, want %v", evaluatedKey, testCase.want)
+			}
+		})
+	}
+}
+
+func Test_getArchiveContents(t *testing.T) {
+	tests := []struct {
+		name        string
+		archivePath string
+		want        []string
+		wantErr     bool
+	}{
+		{
+			name:        "Single File Archive",
+			archivePath: "testdata/single-file-archive.tzst",
+			want:        []string{"dummy_file.txt"},
+			wantErr:     false,
+		},
+		{
+			name:        "Single Directory Archive",
+			archivePath: "testdata/single-directory-archive.tzst",
+			want:        []string{"subfolder/", "subfolder/nested_file.txt"},
+			wantErr:     false,
+		},
+		{
+			name:        "Multiple Item Archive",
+			archivePath: "testdata/multi-item-archive.tzst",
+			want:        []string{"subfolder/", "subfolder/nested_file.txt", "dummy_file.txt"},
+			wantErr:     false,
+		},
+		{
+			name:        "Nonexistent Archive",
+			archivePath: "testdata/nonexistent-archive.tzst",
+			want:        nil,
+			wantErr:     true,
+		},
+	}
+
+	for _, testCase := range tests {
+		t.Run(testCase.name, func(t *testing.T) {
+			// Given
+			step := RestoreCacheStep{
+				logger:         log.NewLogger(),
+				commandFactory: command.NewFactory(env.NewRepository()),
+			}
+
+			// When
+			archiveContents, err := step.getArchiveContents(testCase.archivePath)
+
+			// Then
+			if (err != nil) != testCase.wantErr {
+				t.Errorf("getArchiveContents() error = %v, wantErr %v", err, testCase.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(archiveContents, testCase.want) {
+				t.Errorf("getArchiveContents() = %v, want %v", archiveContents, testCase.want)
 			}
 		})
 	}
