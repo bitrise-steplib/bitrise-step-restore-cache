@@ -117,7 +117,7 @@ func (step RestoreCacheStep) getArchiveContents(archivePath string) ([]string, e
 func (step RestoreCacheStep) decompress(archivePath string) error {
 	decompressTarArgs := []string{
 		"--use-compress-program",
-		"unzstd",
+		"zstd -d",
 		"-xf",
 		archivePath,
 	}
