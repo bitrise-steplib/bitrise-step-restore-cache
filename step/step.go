@@ -93,6 +93,9 @@ func (step RestoreCacheStep) evaluateKey(keyTemplate string) (string, error) {
 	return model.Evaluate(keyTemplate, buildContext)
 }
 
+// This method is currently here for debugging, but isn't used in the code, so golint complains.
+// It may be removed in the future, but for now we'll leave it.
+//nolint:golint,unused
 func (step RestoreCacheStep) getArchiveContents(archivePath string) ([]string, error) {
 	getArchiveContentsArgs := []string{
 		"--list",
