@@ -10,11 +10,18 @@ type_tags:
 
 run_if: .IsCI
 
+deps:
+  brew:
+  - name: zstd
+  apt_get:
+  - name: zstd
+
 toolkit:
   go:
     package_name: github.com/bitrise-steplib/bitrise-step-restore-cache
 
 inputs:
+
 - verbose: "false"
   opts:
     title: Enable verbose logging
@@ -23,3 +30,9 @@ inputs:
     value_options:
     - "true"
     - "false"
+
+- key:
+  opts:
+    title: Cache key
+    summary: The key to use to restore the cache
+    is_required: true
