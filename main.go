@@ -39,11 +39,7 @@ func run() int {
 
 	logger.EnableDebugLog(config.Verbose)
 
-	if err := restoreCacheStep.Run(config); err != nil {
-		logger.Errorf(err.Error())
-		exitCode = 1
-		return exitCode
-	}
+	restoreCacheStep.Run(config)
 
 	return exitCode
 }

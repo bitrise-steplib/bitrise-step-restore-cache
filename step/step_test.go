@@ -24,7 +24,19 @@ func Test_ProcessConfig(t *testing.T) {
 			},
 			want: &Config{
 				Verbose: true,
-				Key:     "valid-key",
+				Keys:    []string{"valid-key"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Valid key input with multiple keys",
+			inputParser: fakeInputParser{
+				verbose: true,
+				key:     "valid-key\nvalid-key-2",
+			},
+			want: &Config{
+				Verbose: true,
+				Keys:    []string{"valid-key", "valid-key-2"},
 			},
 			wantErr: false,
 		},

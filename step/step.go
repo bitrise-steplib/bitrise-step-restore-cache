@@ -19,7 +19,7 @@ type Input struct {
 
 type Config struct {
 	Verbose bool
-	Key     string
+	Keys    []string
 }
 
 type RestoreCacheStep struct {
@@ -53,31 +53,34 @@ func (step RestoreCacheStep) ProcessConfig() (*Config, error) {
 	if strings.TrimSpace(input.Key) == "" {
 		return nil, fmt.Errorf("required input 'key' is empty")
 	}
+	keySlice := strings.Split(input.Key, "\n")
 
 	return &Config{
 		Verbose: input.Verbose,
-		Key:     input.Key,
+		Keys:    keySlice,
 	}, nil
 }
 
-func (step RestoreCacheStep) Run(config *Config) error {
-	step.logger.Println()
-	step.logger.Printf("Evaluating key template: %s", config.Key)
-	evaluatedKey, err := step.evaluateKey(config.Key)
-	if err != nil {
-		return err
-	}
-	step.logger.Donef("Cache key: %s", evaluatedKey)
+func (step RestoreCacheStep) Run(config *Config) {
+	for _, key := range config.Keys {
+		step.logger.Println()
+		step.logger.Printf("Evaluating key template: %s", key)
+		evaluatedKey, err := step.evaluateKey(key)
+		if err != nil {
+			step.logger.Warnf("Failed to evaluate key template: %s", key)
+			continue
+		}
+		step.logger.Donef("Cache key: %s", evaluatedKey)
 
-	step.logger.Println()
-	step.logger.Printf("Restoring cache archive...")
-	startTime := time.Now()
-	if err := step.decompress(evaluatedKey); err != nil {
-		return err
+		step.logger.Println()
+		step.logger.Printf("Restoring cache archive...")
+		startTime := time.Now()
+		if err := step.decompress(evaluatedKey); err != nil {
+			step.logger.Warnf("Failed to decompress cache archive: %s", evaluatedKey)
+			continue
+		}
+		step.logger.Donef("Restored cache archive in %s", time.Since(startTime).Round(time.Second))
 	}
-	step.logger.Donef("Restored cache archive in %s", time.Since(startTime).Round(time.Second))
-
-	return nil
 }
 
 func (step RestoreCacheStep) evaluateKey(keyTemplate string) (string, error) {
