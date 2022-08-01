@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bitrise-steplib/bitrise-step-restore-cache/decompression"
+
 	"github.com/bitrise-io/go-steputils/v2/cache/keytemplate"
 	"github.com/bitrise-io/go-steputils/v2/stepconf"
 	"github.com/bitrise-io/go-utils/v2/command"
@@ -75,7 +77,7 @@ func (step RestoreCacheStep) Run(config *Config) {
 		step.logger.Println()
 		step.logger.Printf("Restoring cache archive...")
 		startTime := time.Now()
-		if err := step.decompress(evaluatedKey); err != nil {
+		if err := decompression.Decompress(evaluatedKey, step.logger, step.envRepo); err != nil {
 			step.logger.Warnf("Failed to decompress cache archive: %s", evaluatedKey)
 			continue
 		}
@@ -115,24 +117,4 @@ func (step RestoreCacheStep) getArchiveContents(archivePath string) ([]string, e
 	archiveContentsSlice := strings.Split(archiveContents, "\n")
 
 	return archiveContentsSlice, nil
-}
-
-func (step RestoreCacheStep) decompress(archivePath string) error {
-	decompressTarArgs := []string{
-		"--use-compress-program",
-		"zstd -d",
-		"-xf",
-		archivePath,
-	}
-
-	cmd := step.commandFactory.Create("tar", decompressTarArgs, nil)
-	step.logger.Debugf("$ %s", cmd.PrintableCommandArgs())
-
-	output, err := cmd.RunAndReturnTrimmedCombinedOutput()
-	if err != nil {
-		step.logger.Errorf("Failed to decompress cache archive: %s", output)
-		return err
-	}
-
-	return nil
 }
