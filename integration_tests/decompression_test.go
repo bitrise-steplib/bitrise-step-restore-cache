@@ -3,7 +3,6 @@
 package integration_tests
 
 import (
-	"github.com/bitrise-io/go-utils/v2/command"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/bitrise-steplib/bitrise-step-restore-cache/decompression"
 
+	"github.com/bitrise-io/go-utils/v2/command"
 	"github.com/bitrise-io/go-utils/v2/env"
 	"github.com/bitrise-io/go-utils/v2/log"
 	"github.com/stretchr/testify/assert"
