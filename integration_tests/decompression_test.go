@@ -52,19 +52,7 @@ func Test_Decompression(t *testing.T) {
 			// Given
 			logger := log.NewLogger()
 			envRepo := env.NewRepository()
-
-			tempDir, err := os.MkdirTemp("", "decompression_test")
-			if err != nil {
-				t.Errorf("Failed to create temp dir: %v", err)
-			}
-
-			// Cleanup the temporary directory when the test is done
-			defer func(path string) {
-				err := os.RemoveAll(path)
-				if err != nil {
-					t.Errorf("Failed to remove temp dir: %v", err)
-				}
-			}(tempDir)
+			tempDir := t.TempDir()
 
 			// When
 			decompressionErr := decompression.Decompress(
