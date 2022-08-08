@@ -6,6 +6,7 @@ require (
 	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.8
 	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.11
 	github.com/bitrise-steplib/bitrise-step-save-cache v0.0.0-20220808092906-004a7e6cb1a6
+	github.com/docker/go-units v0.4.0
 	github.com/hashicorp/go-retryablehttp v0.7.1
 	github.com/stretchr/testify v1.8.0
 )

@@ -14,6 +14,7 @@ import (
 	"github.com/bitrise-io/go-utils/v2/log"
 	"github.com/bitrise-steplib/bitrise-step-restore-cache/decompression"
 	"github.com/bitrise-steplib/bitrise-step-restore-cache/network"
+	"github.com/docker/go-units"
 )
 
 type Input struct {
@@ -142,6 +143,12 @@ func (step RestoreCacheStep) download(keys []string, config Config) (string, err
 	}
 
 	step.logger.Debugf("Archive downloaded to %s", downloadPath)
+
+	fileInfo, err := os.Stat(downloadPath)
+	if err != nil {
+		return "", err
+	}
+	step.logger.Printf("Archive size: %s", units.HumanSizeWithPrecision(float64(fileInfo.Size()), 3))
 
 	return downloadPath, nil
 }
