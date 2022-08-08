@@ -86,7 +86,7 @@ func (step RestoreCacheStep) Run(config *Config) error {
 		step.logger.Printf("Evaluating key template: %s", key)
 		evaluatedKey, err := step.evaluateKey(key)
 		if err != nil {
-			return fmt.Errorf("failed to evaluate key template: %s", key)
+			return fmt.Errorf("failed to evaluate key template: %s", err)
 		}
 		step.logger.Donef("Cache key: %s", evaluatedKey)
 		evaluatedKeys = append(evaluatedKeys, evaluatedKey)
