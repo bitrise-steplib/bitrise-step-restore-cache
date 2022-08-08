@@ -95,18 +95,20 @@ func (step RestoreCacheStep) Run(config *Config) error {
 
 	step.logger.Println()
 	step.logger.Infof("Downloading archive...")
+	downloadStartTime := time.Now()
 	archivePath, err := step.download(evaluatedKeys, *config)
 	if err != nil {
 		return fmt.Errorf("download failed: %w", err)
 	}
+	step.logger.Donef("Downloaded archive in %s", time.Since(downloadStartTime).Round(time.Second))
 
 	step.logger.Println()
-	step.logger.Printf("Restoring archive...")
+	step.logger.Infof("Restoring archive...")
 	startTime := time.Now()
 	if err := decompression.Decompress(archivePath, step.logger, step.envRepo); err != nil {
 		return fmt.Errorf("failed to decompress cache archive: %w", err)
 	}
-	step.logger.Donef("Restored cache archive in %s", time.Since(startTime).Round(time.Second))
+	step.logger.Donef("Restored archive in %s", time.Since(startTime).Round(time.Second))
 
 	return nil
 }
@@ -140,30 +142,7 @@ func (step RestoreCacheStep) download(keys []string, config Config) (string, err
 		return "", err
 	}
 
+	step.logger.Debugf("Archive downloaded to %s", downloadPath)
+
 	return downloadPath, nil
-}
-
-// This method is currently here for debugging, but isn't used in the code, so golint complains.
-// It may be removed in the future, but for now we'll leave it.
-// TODO
-//nolint:golint,unused
-func (step RestoreCacheStep) getArchiveContents(archivePath string) ([]string, error) {
-	getArchiveContentsArgs := []string{
-		"--list",
-		"--file",
-		archivePath,
-	}
-
-	cmd := step.commandFactory.Create("tar", getArchiveContentsArgs, nil)
-	step.logger.Debugf("$ %s", cmd.PrintableCommandArgs())
-
-	archiveContents, err := cmd.RunAndReturnTrimmedCombinedOutput()
-	if err != nil {
-		step.logger.Errorf("Failed to get archiveContents: %s", archiveContents)
-		return nil, err
-	}
-
-	archiveContentsSlice := strings.Split(archiveContents, "\n")
-
-	return archiveContentsSlice, nil
 }
