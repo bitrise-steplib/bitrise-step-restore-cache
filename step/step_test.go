@@ -4,7 +4,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/bitrise-io/go-utils/v2/env"
 	"github.com/bitrise-io/go-utils/v2/log"
 )
 
@@ -22,8 +21,10 @@ func Test_ProcessConfig(t *testing.T) {
 				key:     "valid-key",
 			},
 			want: &Config{
-				Verbose: true,
-				Keys:    []string{"valid-key"},
+				Verbose:        true,
+				Keys:           []string{"valid-key"},
+				APIBaseURL:     "fake service URL",
+				APIAccessToken: "fake access token",
 			},
 			wantErr: false,
 		},
@@ -34,8 +35,10 @@ func Test_ProcessConfig(t *testing.T) {
 				key:     "valid-key\nvalid-key-2",
 			},
 			want: &Config{
-				Verbose: true,
-				Keys:    []string{"valid-key", "valid-key-2"},
+				Verbose:        true,
+				Keys:           []string{"valid-key", "valid-key-2"},
+				APIBaseURL:     "fake service URL",
+				APIAccessToken: "fake access token",
 			},
 			wantErr: false,
 		},
@@ -56,7 +59,10 @@ func Test_ProcessConfig(t *testing.T) {
 			step := RestoreCacheStep{
 				logger:      log.NewLogger(),
 				inputParser: testCase.inputParser,
-				envRepo:     env.NewRepository(),
+				envRepo: fakeEnvRepo{envVars: map[string]string{
+					"BITRISEIO_CACHE_SERVICE_URL":          "fake service URL",
+					"BITRISEIO_CACHE_SERVICE_ACCESS_TOKEN": "fake access token",
+				}},
 			}
 
 			// When
