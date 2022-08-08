@@ -115,7 +115,7 @@ func (step RestoreCacheStep) Run(config *Config) error {
 func (step RestoreCacheStep) evaluateKey(keyTemplate string) (string, error) {
 	model := keytemplate.NewModel(step.envRepo, step.logger)
 	buildContext := keytemplate.BuildContext{
-		Workflow:   step.envRepo.Get("BITRISE_WORKFLOW_ID"),
+		Workflow:   step.envRepo.Get("BITRISE_TRIGGERED_WORKFLOW_ID"),
 		Branch:     step.envRepo.Get("BITRISE_GIT_BRANCH"),
 		CommitHash: step.envRepo.Get("BITRISE_GIT_COMMIT"),
 	}
