@@ -1,6 +1,7 @@
 package step
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -139,6 +140,10 @@ func (step RestoreCacheStep) download(keys []string, config Config) (string, err
 	}
 	err = network.Download(params, step.logger)
 	if err != nil {
+		if errors.Is(err, network.ErrCacheNotFound) {
+			step.logger.Donef("No cache entry found for the provided key")
+			os.Exit(0)
+		}
 		return "", err
 	}
 

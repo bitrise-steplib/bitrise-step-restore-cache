@@ -1,6 +1,7 @@
 package network
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -15,6 +16,8 @@ type DownloadParams struct {
 	CacheKeys    []string
 	DownloadPath string
 }
+
+var ErrCacheNotFound = errors.New("no cache archive found for the provided keys")
 
 func Download(params DownloadParams, logger log.Logger) error {
 	client := newApiClient(retryhttp.NewClient(logger), params.APIBaseURL, params.Token)
