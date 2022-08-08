@@ -27,22 +27,22 @@ func Test_Decompression(t *testing.T) {
 	}{
 		{
 			name:        "Single Item Archive",
-			archivePath: "test_data/single-item.tzst",
+			archivePath: "testdata/single-item.tzst",
 			wantErr:     false,
 		},
 		{
 			name:        "Single Directory Archive",
-			archivePath: "test_data/single-directory.tzst",
+			archivePath: "testdata/single-directory.tzst",
 			wantErr:     false,
 		},
 		{
 			name:        "Multiple Item Archive",
-			archivePath: "test_data/multiple-items.tzst",
+			archivePath: "testdata/multiple-items.tzst",
 			wantErr:     false,
 		},
 		{
 			name:        "Nonexistent Archive",
-			archivePath: "test_data/nonexistent.tzst",
+			archivePath: "testdata/nonexistent.tzst",
 			wantErr:     true,
 		},
 	}

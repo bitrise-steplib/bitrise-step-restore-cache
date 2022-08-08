@@ -2,16 +2,18 @@ package step
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
-
-	"github.com/bitrise-steplib/bitrise-step-restore-cache/decompression"
 
 	"github.com/bitrise-io/go-steputils/v2/cache/keytemplate"
 	"github.com/bitrise-io/go-steputils/v2/stepconf"
 	"github.com/bitrise-io/go-utils/v2/command"
 	"github.com/bitrise-io/go-utils/v2/env"
 	"github.com/bitrise-io/go-utils/v2/log"
+	"github.com/bitrise-steplib/bitrise-step-restore-cache/decompression"
+	"github.com/bitrise-steplib/bitrise-step-restore-cache/network"
 )
 
 type Input struct {
@@ -20,8 +22,10 @@ type Input struct {
 }
 
 type Config struct {
-	Verbose bool
-	Keys    []string
+	Verbose        bool
+	Keys           []string
+	APIBaseURL     stepconf.Secret
+	APIAccessToken stepconf.Secret
 }
 
 type RestoreCacheStep struct {
@@ -57,13 +61,26 @@ func (step RestoreCacheStep) ProcessConfig() (*Config, error) {
 	}
 	keySlice := strings.Split(input.Key, "\n")
 
+	apiBaseURL := step.envRepo.Get("BITRISEIO_CACHE_SERVICE_URL")
+	if apiBaseURL == "" {
+		return nil, fmt.Errorf("the secret 'BITRISEIO_CACHE_SERVICE_URL' is not defined")
+	}
+	apiAccessToken := step.envRepo.Get("BITRISEIO_CACHE_SERVICE_ACCESS_TOKEN")
+	if apiAccessToken == "" {
+		return nil, fmt.Errorf("the secret 'BITRISEIO_CACHE_SERVICE_ACCESS_TOKEN' is not defined")
+	}
+
 	return &Config{
-		Verbose: input.Verbose,
-		Keys:    keySlice,
+		Verbose:        input.Verbose,
+		Keys:           keySlice,
+		APIBaseURL:     stepconf.Secret(apiBaseURL),
+		APIAccessToken: stepconf.Secret(apiAccessToken),
 	}, nil
 }
 
-func (step RestoreCacheStep) Run(config *Config) {
+func (step RestoreCacheStep) Run(config *Config) error {
+	var evaluatedKeys []string
+
 	for _, key := range config.Keys {
 		step.logger.Println()
 		step.logger.Printf("Evaluating key template: %s", key)
@@ -73,16 +90,25 @@ func (step RestoreCacheStep) Run(config *Config) {
 			continue
 		}
 		step.logger.Donef("Cache key: %s", evaluatedKey)
-
-		step.logger.Println()
-		step.logger.Printf("Restoring cache archive...")
-		startTime := time.Now()
-		if err := decompression.Decompress(evaluatedKey, step.logger, step.envRepo); err != nil {
-			step.logger.Warnf("Failed to decompress cache archive: %s", evaluatedKey)
-			continue
-		}
-		step.logger.Donef("Restored cache archive in %s", time.Since(startTime).Round(time.Second))
+		evaluatedKeys = append(evaluatedKeys, evaluatedKey)
 	}
+
+	step.logger.Println()
+	step.logger.Infof("Downloading archive...")
+	archivePath, err := step.download(evaluatedKeys, *config)
+	if err != nil {
+		return fmt.Errorf("download failed: %w", err)
+	}
+
+	step.logger.Println()
+	step.logger.Printf("Restoring archive...")
+	startTime := time.Now()
+	if err := decompression.Decompress(archivePath, step.logger, step.envRepo); err != nil {
+		return fmt.Errorf("failed to decompress cache archive: %w", err)
+	}
+	step.logger.Donef("Restored cache archive in %s", time.Since(startTime).Round(time.Second))
+
+	return nil
 }
 
 func (step RestoreCacheStep) evaluateKey(keyTemplate string) (string, error) {
@@ -95,8 +121,31 @@ func (step RestoreCacheStep) evaluateKey(keyTemplate string) (string, error) {
 	return model.Evaluate(keyTemplate, buildContext)
 }
 
+func (step RestoreCacheStep) download(keys []string, config Config) (string, error) {
+	dir, err := os.MkdirTemp("", "step-restore-cache")
+	if err != nil {
+		return "", err
+	}
+	name := fmt.Sprintf("cache-%s.tzst", time.Now().UTC().Format("20060102-150405"))
+	downloadPath := filepath.Join(dir, name)
+
+	params := network.DownloadParams{
+		APIBaseURL:   string(config.APIBaseURL),
+		Token:        string(config.APIAccessToken),
+		CacheKeys:    keys,
+		DownloadPath: downloadPath,
+	}
+	err = network.Download(params, step.logger)
+	if err != nil {
+		return "", err
+	}
+
+	return downloadPath, nil
+}
+
 // This method is currently here for debugging, but isn't used in the code, so golint complains.
 // It may be removed in the future, but for now we'll leave it.
+// TODO
 //nolint:golint,unused
 func (step RestoreCacheStep) getArchiveContents(archivePath string) ([]string, error) {
 	getArchiveContentsArgs := []string{
