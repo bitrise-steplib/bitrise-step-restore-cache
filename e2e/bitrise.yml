@@ -67,6 +67,15 @@ workflows:
             {{ .OS }}-{{ .Arch }}-node-modules-
         - verbose: "true"
     - script:
+        title: Verify restored folder
+        inputs:
+        - content: |-
+            set -ex
+            if [ ! -d node_modules ]; then
+              echo "node_modules directory doesn't exist"
+              exit 1
+            fi
+    - script:
         title: Install dependencies again
         inputs:
         - content: |-
@@ -102,7 +111,7 @@ workflows:
             .gradle/configuration-cache
         - verbose: "true"
     - script:
-        title: Delete Gradle cache
+        title: Delete local Gradle caches
         inputs:
         - content: |-
             set -ex
@@ -114,6 +123,20 @@ workflows:
         inputs:
         - key: "{{ .OS }}-{{ .Arch }}-gradle-cache-{{ checksum \"**/*.gradle\" \"**/gradle-wrapper.properties\" }}"
         - verbose: "true"
+    - script:
+        title: Verify restored folder
+        inputs:
+        - content: |-
+            set -ex
+            if [ ! -d ~/.gradle/caches ]; then
+              echo "~/.gradle/caches directory doesn't exist"
+              exit 1
+            fi
+            if [ ! -d ~/.gradle/wrapper ]; then
+              echo "~/.gradle/wrapper directory doesn't exist"
+              exit 1
+            fi
+
     - android-build:
         title: Build APK again
         inputs:
