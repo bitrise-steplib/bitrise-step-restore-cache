@@ -6,7 +6,9 @@ package integration_tests
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"testing"
@@ -19,7 +21,7 @@ import (
 
 var logger = log.NewLogger()
 
-func TestDownload(t *testing.T) {
+func TestSuccessfulDownload(t *testing.T) {
 	// Given
 	cacheKeys := []string{
 		"cache-key-v2",
@@ -60,6 +62,29 @@ func TestDownload(t *testing.T) {
 	expectedChecksum := checksumOf(testFileBytes)
 	checksum := checksumOf(downloadedFileBytes)
 	assert.Equal(t, expectedChecksum, checksum)
+}
+
+func TestNotFoundDownload(t *testing.T) {
+	// Given
+	cacheKeys := []string{
+		fmt.Sprintf("no-cache-for-this-%d", rand.Int()),
+	}
+	baseURL := os.Getenv("BITRISEIO_CACHE_SERVICE_URL")
+	token := os.Getenv("BITRISEIO_CACHE_SERVICE_ACCESS_TOKEN")
+
+	// When
+	downloadPath := filepath.Join(t.TempDir(), "cache-test.tzst")
+	params := network.DownloadParams{
+		APIBaseURL:   baseURL,
+		Token:        token,
+		CacheKeys:    cacheKeys,
+		DownloadPath: downloadPath,
+	}
+	logger.EnableDebugLog(true)
+	err := network.Download(params, logger)
+
+	// Then
+	assert.ErrorIs(t, err, network.ErrCacheNotFound)
 }
 
 func uploadArchive(cacheKey, path, baseURL, token string) error {

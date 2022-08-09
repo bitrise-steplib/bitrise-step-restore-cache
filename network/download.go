@@ -19,7 +19,21 @@ type DownloadParams struct {
 
 var ErrCacheNotFound = errors.New("no cache archive found for the provided keys")
 
+// Download archive from the cache API based on the provided keys in params.
+// If there is no match for any of the keys, the error is ErrCacheNotFound.
 func Download(params DownloadParams, logger log.Logger) error {
+	if params.APIBaseURL == "" {
+		return fmt.Errorf("API base URL is empty")
+	}
+
+	if params.Token == "" {
+		return fmt.Errorf("API token is empty")
+	}
+
+	if len(params.CacheKeys) == 0 {
+		return fmt.Errorf("cache key list is empty")
+	}
+
 	client := newApiClient(retryhttp.NewClient(logger), params.APIBaseURL, params.Token)
 
 	logger.Debugf("Get download URL")
