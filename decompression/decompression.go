@@ -14,6 +14,7 @@ func Decompress(archivePath string, logger log.Logger, envRepo env.Repository, a
 		"zstd -d",
 		"-xf",
 		archivePath,
+		"-P", // Same as --absolute-paths in BSD tar, --absolute-names in GNU tar
 	}
 
 	if len(additionalArgs) > 0 {
