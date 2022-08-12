@@ -81,23 +81,14 @@ func (step RestoreCacheStep) ProcessConfig() (*Config, error) {
 }
 
 func (step RestoreCacheStep) Run(config *Config) error {
-	var evaluatedKeys []string
-
-	for _, key := range config.Keys {
-		step.logger.Println()
-		step.logger.Printf("Evaluating key template: %s", key)
-		evaluatedKey, err := step.evaluateKey(key)
-		if err != nil {
-			return fmt.Errorf("failed to evaluate key template: %s", err)
-		}
-		step.logger.Donef("Cache key: %s", evaluatedKey)
-		evaluatedKeys = append(evaluatedKeys, evaluatedKey)
+	keys, err := step.evaluateKeys(config.Keys)
+	if err != nil {
+		return fmt.Errorf("failed to evaluate keys: %w", err)
 	}
-
 	step.logger.Println()
 	step.logger.Infof("Downloading archive...")
 	downloadStartTime := time.Now()
-	archivePath, err := step.download(evaluatedKeys, *config)
+	archivePath, err := step.download(keys, *config)
 	if err != nil {
 		return fmt.Errorf("download failed: %w", err)
 	}
@@ -114,14 +105,31 @@ func (step RestoreCacheStep) Run(config *Config) error {
 	return nil
 }
 
-func (step RestoreCacheStep) evaluateKey(keyTemplate string) (string, error) {
+func (step RestoreCacheStep) evaluateKeys(keys []string) ([]string, error) {
 	model := keytemplate.NewModel(step.envRepo, step.logger)
 	buildContext := keytemplate.BuildContext{
 		Workflow:   step.envRepo.Get("BITRISE_TRIGGERED_WORKFLOW_ID"),
 		Branch:     step.envRepo.Get("BITRISE_GIT_BRANCH"),
 		CommitHash: step.envRepo.Get("BITRISE_GIT_COMMIT"),
 	}
-	return model.Evaluate(keyTemplate, buildContext)
+
+	var evaluatedKeys []string
+	for _, key := range keys {
+		if key == "" {
+			continue
+		}
+
+		step.logger.Println()
+		step.logger.Printf("Evaluating key template: %s", key)
+		evaluatedKey, err := model.Evaluate(key, buildContext)
+		if err != nil {
+			return nil, fmt.Errorf("failed to evaluate key template: %s", err)
+		}
+		step.logger.Donef("Cache key: %s", evaluatedKey)
+		evaluatedKeys = append(evaluatedKeys, evaluatedKey)
+	}
+
+	return evaluatedKeys, nil
 }
 
 func (step RestoreCacheStep) download(keys []string, config Config) (string, error) {
