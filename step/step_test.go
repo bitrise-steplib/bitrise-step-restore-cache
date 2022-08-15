@@ -80,22 +80,22 @@ func Test_ProcessConfig(t *testing.T) {
 	}
 }
 
-func Test_evaluateKey(t *testing.T) {
+func Test_evaluateKeys(t *testing.T) {
 	type args struct {
-		key     string
+		keys    []string
 		envRepo fakeEnvRepo
 	}
 
 	tests := []struct {
 		name    string
 		args    args
-		want    string
+		want    []string
 		wantErr bool
 	}{
 		{
 			name: "Happy path",
 			args: args{
-				key: "npm-cache-{{ .Branch }}",
+				keys: []string{"npm-cache-{{ .Branch }}"},
 				envRepo: fakeEnvRepo{
 					envVars: map[string]string{
 						"BITRISE_WORKFLOW_ID": "primary",
@@ -104,16 +104,38 @@ func Test_evaluateKey(t *testing.T) {
 					},
 				},
 			},
-			want:    "npm-cache-main",
+			want:    []string{"npm-cache-main"},
+			wantErr: false,
+		},
+		{
+			name: "Multiple keys",
+			args: args{
+				keys: []string{
+					"npm-cache-{{ .Branch }}",
+					"npm-cache-",
+					"",
+				},
+				envRepo: fakeEnvRepo{
+					envVars: map[string]string{
+						"BITRISE_WORKFLOW_ID": "primary",
+						"BITRISE_GIT_BRANCH":  "main",
+						"BITRISE_GIT_COMMIT":  "9de033412f24b70b59ca8392ccb9f61ac5af4cc3",
+					},
+				},
+			},
+			want: []string{
+				"npm-cache-main",
+				"npm-cache-",
+			},
 			wantErr: false,
 		},
 		{
 			name: "Empty environment variables",
 			args: args{
-				key:     "npm-cache-{{ .Branch }}",
+				keys:    []string{"npm-cache-{{ .Branch }}"},
 				envRepo: fakeEnvRepo{},
 			},
-			want:    "npm-cache-",
+			want:    []string{"npm-cache-"},
 			wantErr: false,
 		},
 	}
@@ -128,13 +150,13 @@ func Test_evaluateKey(t *testing.T) {
 			}
 
 			// When
-			evaluatedKey, err := step.evaluateKey(testCase.args.key)
+			evaluatedKeys, err := step.evaluateKeys(testCase.args.keys)
 			if (err != nil) != testCase.wantErr {
 				t.Errorf("evaluateKey() error = %v, wantErr %v", err, testCase.wantErr)
 				return
 			}
-			if evaluatedKey != testCase.want {
-				t.Errorf("evaluateKey() = %v, want %v", evaluatedKey, testCase.want)
+			if !reflect.DeepEqual(evaluatedKeys, testCase.want) {
+				t.Errorf("evaluateKey() = %v, want %v", evaluatedKeys, testCase.want)
 			}
 		})
 	}
