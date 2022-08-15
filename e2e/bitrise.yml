@@ -43,7 +43,7 @@ workflows:
         - content: |-
             set -ex
             npm install
-    - git::https://github.com/bitrise-steplib/bitrise-step-save-cache.git@update-api-envs:
+    - git::https://github.com/bitrise-steplib/bitrise-step-save-cache.git@main:
         title: Save cache
         run_if: "true"
         inputs:
@@ -99,7 +99,7 @@ workflows:
         inputs:
         - module: app
         - variant: debug
-    - git::https://github.com/bitrise-steplib/bitrise-step-save-cache.git@update-api-envs:
+    - git::https://github.com/bitrise-steplib/bitrise-step-save-cache.git@main:
         title: Save cache
         run_if: "true"
         inputs:
@@ -175,5 +175,5 @@ workflows:
 
             auth_token=$(echo $json_response | jq -r .access_token)
 
-            envman add --key BITRISEIO_ABCS_API_URL --value $BITRISEIO_CACHE_SERVICE_URL --sensitive
+            envman add --key BITRISEIO_ABCS_API_URL --value $BITRISEIO_CACHE_SERVICE_URL
             envman add --key BITRISEIO_ABCS_ACCESS_TOKEN --value $auth_token --sensitive
