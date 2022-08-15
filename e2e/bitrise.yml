@@ -43,7 +43,7 @@ workflows:
         - content: |-
             set -ex
             npm install
-    - git::https://github.com/bitrise-steplib/bitrise-step-save-cache.git@main:
+    - git::https://github.com/bitrise-steplib/bitrise-step-save-cache.git@update-api-envs:
         title: Save cache
         run_if: "true"
         inputs:
@@ -99,7 +99,7 @@ workflows:
         inputs:
         - module: app
         - variant: debug
-    - git::https://github.com/bitrise-steplib/bitrise-step-save-cache.git@main:
+    - git::https://github.com/bitrise-steplib/bitrise-step-save-cache.git@update-api-envs:
         title: Save cache
         run_if: "true"
         inputs:
