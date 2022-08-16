@@ -81,10 +81,13 @@ func (step RestoreCacheStep) ProcessConfig() (*Config, error) {
 }
 
 func (step RestoreCacheStep) Run(config *Config) error {
+	tracker := newStepTracker(*config, step.envRepo, step.logger)
+  
 	keys, err := step.evaluateKeys(config.Keys)
 	if err != nil {
 		return fmt.Errorf("failed to evaluate keys: %w", err)
 	}
+  
 	step.logger.Println()
 	step.logger.Infof("Downloading archive...")
 	downloadStartTime := time.Now()
@@ -92,15 +95,25 @@ func (step RestoreCacheStep) Run(config *Config) error {
 	if err != nil {
 		return fmt.Errorf("download failed: %w", err)
 	}
-	step.logger.Donef("Downloaded archive in %s", time.Since(downloadStartTime).Round(time.Second))
+	fileInfo, err := os.Stat(archivePath)
+	if err != nil {
+		return err
+	}
+	step.logger.Printf("Archive size: %s", units.HumanSizeWithPrecision(float64(fileInfo.Size()), 3))
+	downloadTime := time.Since(downloadStartTime).Round(time.Second)
+	step.logger.Donef("Downloaded archive in %s", downloadTime)
+	tracker.logArchiveDownloaded(downloadTime, fileInfo)
 
 	step.logger.Println()
 	step.logger.Infof("Restoring archive...")
-	startTime := time.Now()
+	extractionStartTime := time.Now()
 	if err := decompression.Decompress(archivePath, step.logger, step.envRepo); err != nil {
 		return fmt.Errorf("failed to decompress cache archive: %w", err)
 	}
-	step.logger.Donef("Restored archive in %s", time.Since(startTime).Round(time.Second))
+	extractionTime := time.Since(extractionStartTime).Round(time.Second)
+	step.logger.Donef("Restored archive in %s", extractionTime)
+	tracker.logArchiveExtracted(extractionTime)
+	tracker.wait()
 
 	return nil
 }
@@ -156,12 +169,6 @@ func (step RestoreCacheStep) download(keys []string, config Config) (string, err
 	}
 
 	step.logger.Debugf("Archive downloaded to %s", downloadPath)
-
-	fileInfo, err := os.Stat(downloadPath)
-	if err != nil {
-		return "", err
-	}
-	step.logger.Printf("Archive size: %s", units.HumanSizeWithPrecision(float64(fileInfo.Size()), 3))
 
 	return downloadPath, nil
 }
