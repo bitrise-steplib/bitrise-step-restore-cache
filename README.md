@@ -17,7 +17,7 @@ Key-based caching is not platform specific and can be used to cache anything by 
 
 #### Templates
 
-The Step requires a string key to use when downloading a cache archive. In order to always download the most relevant cache archive for each build, the cache key input can contain template elements. The Step evaluates the cache key at runtime and the final key value can change based on the build environment or files in the repo.  
+The Step requires a string key to use when downloading a cache archive. In order to always download the most relevant cache archive for each build, the cache key input can contain template elements. The Step evaluates the cache key at runtime and the final key value can change based on the build environment or files in the repo.
 
 The following variables are supported in keys:
 
@@ -67,6 +67,51 @@ Add this step directly to your workflow in the [Bitrise Workflow Editor](https:/
 
 You can also run this step directly with [Bitrise CLI](https://github.com/bitrise-io/bitrise).
 
+### Examples
+
+#### Restore and save cache using a key that includes a checksum
+
+```yaml
+steps:
+- restore-cache@1:
+    inputs:
+    - key: npm-cache-{{ checksum "package-lock.json" }}
+
+# Build steps
+
+- save-cache@1:
+    inputs:
+    - key: npm-cache-{{ checksum "package-lock.json" }}
+    - paths: node_modules
+```
+
+#### Use fallback key when exact cache match is not available
+
+```yaml
+steps:
+- restore-cache@1:
+    inputs:
+    - key: |-
+        npm-cache-{{ checksum "package-lock.json" }}
+        npm-cache-
+```
+
+The Step will look up the first key (`npm-cache-a982ee8f` for example). If there is no exact match for this key (because there is only a cache archive for `npm-cache-233ad571`), then it will look up any cache archive whose key starts with `npm-cache-`.
+
+#### Separate caches for each OS and architecture
+
+Cache is not guaranteed to work across different Bitrise Stacks (different OS or same OS but different CPU architecture). If a workflow runs on different stacks, it's a good idea to include the OS and architecture in the cache key:
+
+```yaml
+steps:
+- restore-cache@1:
+    inputs:
+    - key: |-
+        {{ .OS }}-{{ .Arch }}-npm-cache-{{ checksum "package-lock.json" }}
+        {{ .OS }}-{{ .Arch }}-npm-cache-
+```
+
+
 ## ⚙️ Configuration
 
 <details>
@@ -88,6 +133,9 @@ There are no outputs defined in this step
 We welcome [pull requests](https://github.com/bitrise-steplib/bitrise-step-restore-cache/pulls) and [issues](https://github.com/bitrise-steplib/bitrise-step-restore-cache/issues) against this repository.
 
 For pull requests, work on your changes in a forked repository and use the Bitrise CLI to [run step tests locally](https://devcenter.bitrise.io/bitrise-cli/run-your-first-build/).
+
+**Note:** this step's end-to-end tests (defined in `e2e/bitrise.yml`) are working with secrets which are intentionally not stored in this repo. External contributors won't be able to run those tests. Don't worry, if you open a PR with your contribution, we will help with running tests and make sure that they pass.
+
 
 Learn more about developing steps:
 
