@@ -2,24 +2,26 @@
 
 [![Step changelog](https://shields.io/github/v/release/bitrise-steplib/bitrise-step-restore-cache?include_prereleases&label=changelog&color=blueviolet)](https://github.com/bitrise-steplib/bitrise-step-restore-cache/releases)
 
-Restores build cache using a cache key. This step needs to be used in combination with **Save Cache**.
+Restores build cache using a cache key. This Step needs to be used in combination with **Save Cache**.
 
 <details>
 <summary>Description</summary>
 
+Restores build cache using a cache key. This Step needs to be used in combination with **Save Cache**.
+
 #### About key-based caching
 
-Key-based caching is a concept where cache archives are saved and restored using a unique cache key. One Bitrise project can have multiple cache archives stored at the same time, and the **Restore Cache** step downloads a cache archive associated with the key provided as a step input.
+Key-based caching is a concept where cache archives are saved and restored using a unique cache key. One Bitrise project can have multiple cache archives stored simultaneously, and the **Restore Cache Step** downloads a cache archive associated with the key provided as a Step input.
 
-Caches can become outdated across builds when something changes in the project (for example, a dependency gets upgraded to a new version). In this case, a new (unique) cache key is needed to save the new cache contents. This is possible if the cache key is dynamic and changes based on the project state (for example, a checksum of the dependency lockfile is part of the cache key). If the same dynamic cache key is used when restoring the cache, it will download the most relevant cache archive available.
+Caches can become outdated across builds when something changes in the project (for example, a dependency gets upgraded to a new version). In this case, a new (unique) cache key is needed to save the new cache contents. This is possible if the cache key is dynamic and changes based on the project state (for example, a checksum of the dependency lockfile is part of the cache key). If you use the same dynamic cache key when restoring the cache, the Step will download the most relevant cache archive available.
 
-Key-based caching is not platform specific and can be used to cache anything by carefully selecting the cache key and the files/folders to include in the cache.
+Key-based caching platform-agnostic and can be used to cache anything by carefully selecting the cache key and the files/folders to include in the cache.
 
 #### Templates
 
-The Step requires a string key to use when downloading a cache archive. In order to always download the most relevant cache archive for each build, the cache key input can contain template elements. The Step evaluates the cache key at runtime and the final key value can change based on the build environment or files in the repo.
+The Step requires a string key to use when downloading a cache archive. In order to always download the most relevant cache archive for each build, the cache key input can contain template elements. The Step evaluates the key template at runtime and the final key value can change based on the build environment or files in the repo.
 
-The following variables are supported in keys:
+The following variables are supported in cache keys input:
 
 - `cache-key-{{ .Branch }}`: Current git branch the build runs on
 - `cache-key-{{ .CommitHash }}`: SHA-256 hash of the git commit the build runs on
@@ -29,14 +31,14 @@ The following variables are supported in keys:
 
 Functions available in a template:
 
-`checksum`: this function takes one or more file paths and computes the SHA256 checksum of the file contents. This is useful for creating unique cache keys based on files that describe the cached content.
+`checksum`: This function takes one or more file paths and computes the SHA256 [checksum](https://en.wikipedia.org/wiki/Checksum) of the file contents. This is useful for creating unique cache keys based on files that describe content to cache.
 
 Examples of using `checksum`:
 - `cache-key-{{ checksum "package-lock.json" }}`
 - `cache-key-{{ checksum "**/Package.resolved" }}`
 - `cache-key-{{ checksum "**/*.gradle*" "gradle.properties" }}`
 
-`getenv`: this function returns the value of an environment variable or an empty string if the variable is not defined.
+`getenv`: This function returns the value of an environment variable or an empty string if the variable is not defined.
 
 Examples of `getenv`:
 - `cache-key-{{ getenv "PR" }}`
@@ -44,13 +46,13 @@ Examples of `getenv`:
 
 #### Key matching and fallback keys
 
-In the simplest case, a cache archive gets downloaded and restored if the provided key matches a cache archive uploaded previously using the Save Cache step. Stored cache archives are scoped to the Bitrise project. Builds can restore caches saved by any previous workflow run on any Bitrise Stack.
+The most straightforward use case is that a cache archive is downloaded and restored if the provided key matches a cache archive uploaded previously using the Save Cache Step. Stored cache archives are scoped to the Bitrise project. Builds can restore caches saved by any previous Workflow run on any Bitrise Stack.
 
-It's possible to define more than one key for the Step. By listing one key per line, the Step will try to look up the first key, and if there is no cache stored for the first key, it will look up the second key (and so on).
+It's possible to define more than one key in the cache keys input. You can specify additional keys by listing one key per line. The list is in priority order, so the Step will first try to find a match for the first key you provided, and if there is no cache stored for the key, it will move on to find a match for the second key (and so on).
 
 In addition to listing multiple keys, each key can be a prefix of a saved cache key and still get a matching cache archive. For example, the key `my-cache-` can match an existing archive saved with the key `my-cache-a6a102ff`.
 
-It's a common practice to configure the keys in a way that the first key is an exact match to a checksum key, and a more generic prefix key is used as a fallback:
+We recommend configuring the keys in a way that the first key is an exact match to a checksum key, and to use a more generic prefix key as a fallback:
 
 ```
 inputs:
@@ -58,6 +60,10 @@ inputs:
     npm-cache-{{ checksum "package-lock.json" }}
     npm-cache-
 ```
+
+#### Related steps
+
+[Save cache](github.com/bitrise-steplib/bitrise-step-save-cache/)
 
 </details>
 
@@ -119,7 +125,7 @@ steps:
 
 | Key | Description | Flags | Default |
 | --- | --- | --- | --- |
-| `key` | One cache key per line in priority order.  The key supports template elements for creating dynamic cache keys. These dynamic keys change the final key value based on the build environment or files in the repo in order to create new cache archives.  See the step description for more details and examples. | required |  |
+| `key` | Keys used for restoring a cache archive. One cache key per line in priority order.  The key supports template elements for creating dynamic cache keys. These dynamic keys change the final key value based on the build environment or files in the repo in order to create new cache archives.  See the Step description for more details and examples. | required |  |
 | `verbose` | Enable logging additional information for troubleshooting. | required | `false` |
 </details>
 
