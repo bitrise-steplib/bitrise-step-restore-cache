@@ -15,7 +15,7 @@ Key-based caching is a concept where cache archives are saved and restored using
 
 Caches can become outdated across builds when something changes in the project (for example, a dependency gets upgraded to a new version). In this case, a new (unique) cache key is needed to save the new cache contents. This is possible if the cache key is dynamic and changes based on the project state (for example, a checksum of the dependency lockfile is part of the cache key). If you use the same dynamic cache key when restoring the cache, the Step will download the most relevant cache archive available.
 
-Key-based caching platform-agnostic and can be used to cache anything by carefully selecting the cache key and the files/folders to include in the cache.
+Key-based caching is platform-agnostic and can be used to cache anything by carefully selecting the cache key and the files/folders to include in the cache.
 
 #### Templates
 
@@ -63,7 +63,7 @@ inputs:
 
 #### Related steps
 
-[Save cache](github.com/bitrise-steplib/bitrise-step-save-cache/)
+[Save cache](https://github.com/bitrise-steplib/bitrise-step-save-cache/)
 
 </details>
 
@@ -72,6 +72,8 @@ inputs:
 Add this step directly to your workflow in the [Bitrise Workflow Editor](https://devcenter.bitrise.io/steps-and-workflows/steps-and-workflows-index/).
 
 You can also run this step directly with [Bitrise CLI](https://github.com/bitrise-io/bitrise).
+
+⚠️ **Beta status**: While this Step is in beta, everyone can use it without restrictions, quotas or costs.
 
 ### Examples
 
@@ -125,7 +127,7 @@ steps:
 
 | Key | Description | Flags | Default |
 | --- | --- | --- | --- |
-| `key` | Keys used for restoring a cache archive. One cache key per line in priority order.  The key supports template elements for creating dynamic cache keys. These dynamic keys change the final key value based on the build environment or files in the repo in order to create new cache archives.  See the Step description for more details and examples. | required |  |
+| `key` | Keys used for restoring a cache archive. One cache key per line in priority order.  The key supports template elements for creating dynamic cache keys. These dynamic keys change the final key value based on the build environment or files in the repo in order to create new cache archives. See the Step description for more details and examples.  The maximum length of a key is 512 characters (longer keys get truncated) and you can list at most 8 keys using this input. Commas (`,`) are not allowed in keys. | required |  |
 | `verbose` | Enable logging additional information for troubleshooting. | required | `false` |
 </details>
 
