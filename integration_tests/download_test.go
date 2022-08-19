@@ -11,6 +11,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/bitrise-io/go-utils/v2/log"
@@ -26,6 +27,8 @@ func TestSuccessfulDownload(t *testing.T) {
 	cacheKeys := []string{
 		"cache-key-v2",
 		"cache-key",
+		"key:with&strange?characters<>",
+		strings.Repeat("cache-key-", 60),
 	}
 	baseURL := os.Getenv("BITRISEIO_ABCS_API_URL")
 	token := os.Getenv("BITRISEIO_ABCS_ACCESS_TOKEN")
