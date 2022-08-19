@@ -6,10 +6,14 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/hashicorp/go-retryablehttp"
 )
+
+const maxKeyLength = 512
+const maxKeyCount = 8
 
 type apiClient struct {
 	httpClient  *retryablehttp.Client
@@ -30,9 +34,13 @@ func newApiClient(client *retryablehttp.Client, baseURL string, accessToken stri
 }
 
 func (c apiClient) restore(cacheKeys []string) (string, error) {
-	url := fmt.Sprintf("%s/restore?cache_keys=%s", c.baseURL, strings.Join(cacheKeys, ","))
+	keysInQuery, err := validateKeys(cacheKeys)
+	if err != nil {
+		return "", err
+	}
+	apiURL := fmt.Sprintf("%s/restore?cache_keys=%s", c.baseURL, keysInQuery)
 
-	req, err := retryablehttp.NewRequest("GET", url, nil)
+	req, err := retryablehttp.NewRequest("GET", apiURL, nil)
 	if err != nil {
 		return "", err
 	}
@@ -89,4 +97,23 @@ func (c apiClient) downloadArchive(url string) (io.ReadCloser, error) {
 		}
 		return nil, fmt.Errorf("HTTP %d: %s", resp.StatusCode, errorResp)
 	}
+}
+
+func validateKeys(keys []string) (string, error) {
+	if len(keys) > maxKeyCount {
+		return "", fmt.Errorf("maximum number of keys is %d", maxKeyCount)
+	}
+	var truncatedKeys []string
+	for _, key := range keys {
+		if strings.Contains(key, ",") {
+			return "", fmt.Errorf("commas are not allowed in keys")
+		}
+		if len(key) > maxKeyLength {
+			truncatedKeys = append(truncatedKeys, key[:maxKeyLength])
+		} else {
+			truncatedKeys = append(truncatedKeys, key)
+		}
+	}
+
+	return url.QueryEscape(strings.Join(truncatedKeys, ",")), nil
 }
