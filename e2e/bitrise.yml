@@ -61,6 +61,7 @@ workflows:
     - path::./:
         title: Restore cache
         run_if: "true"
+        is_skippable: false
         inputs:
         - key: |-
             {{ .OS }}-{{ .Arch }}-node-modules-{{ checksum "package-lock.json" }}
@@ -120,6 +121,7 @@ workflows:
     - path::./:
         title: Restore cache
         run_if: "true"
+        is_skippable: false
         inputs:
         - key: "{{ .OS }}-{{ .Arch }}-gradle-cache-{{ checksum \"**/*.gradle\" \"**/gradle-wrapper.properties\" }}"
         - verbose: "true"

@@ -2,6 +2,8 @@
 
 ### Examples
 
+Check out [Workflow Recipes](https://github.com/bitrise-io/workflow-recipes#-key-based-caching-beta) for platform-specific examples!
+
 #### Restore and save cache using a key that includes a checksum
 
 ```yaml
