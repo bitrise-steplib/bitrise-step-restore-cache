@@ -1,33 +1,19 @@
 package step
 
 import (
-	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
-	"time"
 
-	"github.com/bitrise-io/go-steputils/v2/cache/keytemplate"
+	"github.com/bitrise-io/go-steputils/v2/cache"
 	"github.com/bitrise-io/go-steputils/v2/stepconf"
 	"github.com/bitrise-io/go-utils/v2/command"
 	"github.com/bitrise-io/go-utils/v2/env"
 	"github.com/bitrise-io/go-utils/v2/log"
-	"github.com/bitrise-steplib/bitrise-step-restore-cache/decompression"
-	"github.com/bitrise-steplib/bitrise-step-restore-cache/network"
-	"github.com/docker/go-units"
 )
 
 type Input struct {
 	Verbose bool   `env:"verbose,required"`
 	Key     string `env:"key,required"`
-}
-
-type Config struct {
-	Verbose        bool
-	Keys           []string
-	APIBaseURL     stepconf.Secret
-	APIAccessToken stepconf.Secret
 }
 
 type RestoreCacheStep struct {
@@ -51,124 +37,22 @@ func New(
 	}
 }
 
-func (step RestoreCacheStep) ProcessConfig() (*Config, error) {
+func (step RestoreCacheStep) Run() error {
 	var input Input
 	if err := step.inputParser.Parse(&input); err != nil {
-		return nil, err
+		return err
 	}
 	stepconf.Print(input)
 
 	if strings.TrimSpace(input.Key) == "" {
-		return nil, fmt.Errorf("required input 'key' is empty")
-	}
-	keySlice := strings.Split(input.Key, "\n")
-
-	apiBaseURL := step.envRepo.Get("BITRISEIO_ABCS_API_URL")
-	if apiBaseURL == "" {
-		return nil, fmt.Errorf("the secret 'BITRISEIO_ABCS_API_URL' is not defined")
-	}
-	apiAccessToken := step.envRepo.Get("BITRISEIO_ABCS_ACCESS_TOKEN")
-	if apiAccessToken == "" {
-		return nil, fmt.Errorf("the secret 'BITRISEIO_ABCS_ACCESS_TOKEN' is not defined")
+		return fmt.Errorf("required input 'key' is empty")
 	}
 
-	return &Config{
-		Verbose:        input.Verbose,
-		Keys:           keySlice,
-		APIBaseURL:     stepconf.Secret(apiBaseURL),
-		APIAccessToken: stepconf.Secret(apiAccessToken),
-	}, nil
-}
+	step.logger.EnableDebugLog(input.Verbose)
 
-func (step RestoreCacheStep) Run(config *Config) error {
-	tracker := newStepTracker(*config, step.envRepo, step.logger)
-  
-	keys, err := step.evaluateKeys(config.Keys)
-	if err != nil {
-		return fmt.Errorf("failed to evaluate keys: %w", err)
-	}
-  
-	step.logger.Println()
-	step.logger.Infof("Downloading archive...")
-	downloadStartTime := time.Now()
-	archivePath, err := step.download(keys, *config)
-	if err != nil {
-		return fmt.Errorf("download failed: %w", err)
-	}
-	fileInfo, err := os.Stat(archivePath)
-	if err != nil {
-		return err
-	}
-	step.logger.Printf("Archive size: %s", units.HumanSizeWithPrecision(float64(fileInfo.Size()), 3))
-	downloadTime := time.Since(downloadStartTime).Round(time.Second)
-	step.logger.Donef("Downloaded archive in %s", downloadTime)
-	tracker.logArchiveDownloaded(downloadTime, fileInfo)
-
-	step.logger.Println()
-	step.logger.Infof("Restoring archive...")
-	extractionStartTime := time.Now()
-	if err := decompression.Decompress(archivePath, step.logger, step.envRepo); err != nil {
-		return fmt.Errorf("failed to decompress cache archive: %w", err)
-	}
-	extractionTime := time.Since(extractionStartTime).Round(time.Second)
-	step.logger.Donef("Restored archive in %s", extractionTime)
-	tracker.logArchiveExtracted(extractionTime)
-	tracker.wait()
-
-	return nil
-}
-
-func (step RestoreCacheStep) evaluateKeys(keys []string) ([]string, error) {
-	model := keytemplate.NewModel(step.envRepo, step.logger)
-	buildContext := keytemplate.BuildContext{
-		Workflow:   step.envRepo.Get("BITRISE_TRIGGERED_WORKFLOW_ID"),
-		Branch:     step.envRepo.Get("BITRISE_GIT_BRANCH"),
-		CommitHash: step.envRepo.Get("BITRISE_GIT_COMMIT"),
-	}
-
-	var evaluatedKeys []string
-	for _, key := range keys {
-		if key == "" {
-			continue
-		}
-
-		step.logger.Println()
-		step.logger.Printf("Evaluating key template: %s", key)
-		evaluatedKey, err := model.Evaluate(key, buildContext)
-		if err != nil {
-			return nil, fmt.Errorf("failed to evaluate key template: %s", err)
-		}
-		step.logger.Donef("Cache key: %s", evaluatedKey)
-		evaluatedKeys = append(evaluatedKeys, evaluatedKey)
-	}
-
-	return evaluatedKeys, nil
-}
-
-func (step RestoreCacheStep) download(keys []string, config Config) (string, error) {
-	dir, err := os.MkdirTemp("", "step-restore-cache")
-	if err != nil {
-		return "", err
-	}
-	name := fmt.Sprintf("cache-%s.tzst", time.Now().UTC().Format("20060102-150405"))
-	downloadPath := filepath.Join(dir, name)
-
-	params := network.DownloadParams{
-		APIBaseURL:   string(config.APIBaseURL),
-		Token:        string(config.APIAccessToken),
-		CacheKeys:    keys,
-		DownloadPath: downloadPath,
-	}
-	err = network.Download(params, step.logger)
-	if err != nil {
-		if errors.Is(err, network.ErrCacheNotFound) {
-			step.logger.Donef("No cache entry found for the provided key")
-			os.Exit(0)
-		}
-		return "", err
-	}
-
-	step.logger.Debugf("Archive downloaded to %s", downloadPath)
-
-	return downloadPath, nil
+	return cache.NewRestorer(step.envRepo, step.logger).Restore(cache.RestoreCacheInput{
+		StepId:  "restore-cache",
+		Verbose: input.Verbose,
+		Keys:    strings.Split(input.Key, "\n"),
+	})
 }

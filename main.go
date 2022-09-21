@@ -30,16 +30,7 @@ func run() int {
 
 	exitCode := 0
 
-	config, err := restoreCacheStep.ProcessConfig()
-	if err != nil {
-		logger.Errorf(err.Error())
-		exitCode = 1
-		return exitCode
-	}
-
-	logger.EnableDebugLog(config.Verbose)
-
-	err = restoreCacheStep.Run(config)
+	err := restoreCacheStep.Run()
 	if err != nil {
 		logger.Errorf(err.Error())
 		exitCode = 1
