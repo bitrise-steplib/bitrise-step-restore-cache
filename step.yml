@@ -100,3 +100,14 @@ inputs:
     value_options:
     - "true"
     - "false"
+
+outputs:
+- BITRISE_CACHE_HIT:
+  opts:
+    title: Cache hit
+    description: |-
+      Indicates if a cache entry was restored. Possible values:
+
+      - `exact`: Exact cache hit for the first requested cache key
+      - `partial`: Cache hit for a key other than the first
+      - `false` No cache hit, nothing was restored

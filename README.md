@@ -135,7 +135,10 @@ steps:
 
 <details>
 <summary>Outputs</summary>
-There are no outputs defined in this step
+
+| Environment Variable | Description |
+| --- | --- |
+| `BITRISE_CACHE_HIT` | Indicates if a cache entry was restored. Possible values:  - `exact`: Exact cache hit for the first requested cache key - `partial`: Cache hit for a key other than the first - `false` No cache hit, nothing was restored |
 </details>
 
 ## 🙋 Contributing
