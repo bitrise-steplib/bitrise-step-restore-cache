@@ -40,7 +40,7 @@ workflows:
         inputs:
         - content: |-
             set -ex
-            rm -rf node_modules
+            sudo rm -rf node_modules
     - path::./:
         title: Restore cache
         run_if: "true"
@@ -88,7 +88,7 @@ workflows:
         run_if: "true"
         inputs:
         # E2E tests run in parallel on different stacks, key should be unique to avoid race conditions
-        - key: "{{ .OS }}-{{ .Arch }}-gradle-cache-{{ checksum \"**/*.gradle\" \"**/gradle-wrapper.properties\" }}"
+        - key: "{{ getenv \"BITRISEIO_STACK_ID\" }}-gradle-cache-{{ checksum \"**/*.gradle\" \"**/gradle-wrapper.properties\" }}"
         - paths: |-
             ~/.gradle/caches
             ~/.gradle/wrapper
@@ -99,14 +99,14 @@ workflows:
         inputs:
         - content: |-
             set -ex
-            rm -rf .gradle
-            rm -rf ~/.gradle
+            sudo rm -rf .gradle
+            sudo rm -rf ~/.gradle
     - path::./:
         title: Restore cache
         run_if: "true"
         is_skippable: false
         inputs:
-        - key: "{{ .OS }}-{{ .Arch }}-gradle-cache-{{ checksum \"**/*.gradle\" \"**/gradle-wrapper.properties\" }}"
+        - key: "{{ getenv \"BITRISEIO_STACK_ID\" }}-gradle-cache-{{ checksum \"**/*.gradle\" \"**/gradle-wrapper.properties\" }}"
         - verbose: "true"
     - script:
         title: Verify restored folder
