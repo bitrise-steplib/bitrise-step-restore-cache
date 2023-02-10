@@ -1,4 +1,4 @@
-title: Restore Cache (Beta)
+title: Restore Cache
 summary: Restores build cache using a cache key. This Step needs to be used in combination with **Save Cache**.
 description: |
   Restores build cache using a cache key. This Step needs to be used in combination with **Save Cache**.
