@@ -50,9 +50,26 @@ func (step RestoreCacheStep) Run() error {
 
 	step.logger.EnableDebugLog(input.Verbose)
 
-	return cache.NewRestorer(step.envRepo, step.logger, step.commandFactory).Restore(cache.RestoreCacheInput{
-		StepId:  "restore-cache",
-		Verbose: input.Verbose,
-		Keys:    strings.Split(input.Key, "\n"),
+	return retry(3, func(retriesLeft int) error {
+		err := cache.NewRestorer(step.envRepo, step.logger, step.commandFactory).Restore(cache.RestoreCacheInput{
+			StepId:  "restore-cache",
+			Verbose: input.Verbose,
+			Keys:    strings.Split(input.Key, "\n"),
+		})
+		if err != nil {
+			step.logger.Errorf("Failed to restore cache: %+v (retry attempts left: %d)", err, retriesLeft)
+		}
+		return err
 	})
+}
+
+func retry(attemptCount int, fn func(retriesLeft int) error) error {
+	var err error
+	for i := 0; i < attemptCount; i++ {
+		err = fn(attemptCount - i - 1)
+		if err == nil {
+			return nil
+		}
+	}
+	return err
 }
