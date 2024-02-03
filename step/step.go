@@ -50,7 +50,7 @@ func (step RestoreCacheStep) Run() error {
 
 	step.logger.EnableDebugLog(input.Verbose)
 
-	return retry(3, func(retriesLeft int) error {
+	return retry(5, func(retriesLeft int) error {
 		err := cache.NewRestorer(step.envRepo, step.logger, step.commandFactory).Restore(cache.RestoreCacheInput{
 			StepId:  "restore-cache",
 			Verbose: input.Verbose,
