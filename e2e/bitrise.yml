@@ -47,8 +47,8 @@ workflows:
         is_skippable: false
         inputs:
         - key: |-
-            {{ getenv \"BITRISEIO_STACK_ID\" }}-restore-cache-step-node-modules-{{ checksum "package-lock.json" }}
-            {{ getenv \"BITRISEIO_STACK_ID\" }}-restore-cache-step-node-modules-
+            {{ getenv "BITRISEIO_STACK_ID" }}-restore-cache-step-node-modules-{{ checksum "package-lock.json" }}
+            {{ getenv "BITRISEIO_STACK_ID" }}-restore-cache-step-node-modules-
         - verbose: "true"
     - script:
         title: Verify restored folder
