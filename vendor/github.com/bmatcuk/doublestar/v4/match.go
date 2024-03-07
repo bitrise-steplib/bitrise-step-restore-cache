@@ -46,9 +46,6 @@ import (
 // is PathMatch(). Alternatively, you can run filepath.ToSlash() on both
 // pattern and name and then use this function.
 //
-// Note: users should _not_ count on the returned error,
-// doublestar.ErrBadPattern, being equal to path.ErrBadPattern.
-//
 func Match(pattern, name string) (bool, error) {
 	return matchWithSeparator(pattern, name, '/', true)
 }
@@ -301,14 +298,9 @@ MATCH:
 }
 
 func isZeroLengthPattern(pattern string, separator rune) (ret bool, err error) {
-	// `/**`, `**/`, and `/**/` are special cases - a pattern such as `path/to/a/**` or `path/to/a/**/`
-	// *should* match `path/to/a` because `a` might be a directory
-	if pattern == "" ||
-		pattern == "*" ||
-		pattern == "**" ||
-		pattern == string(separator)+"**" ||
-		pattern == "**"+string(separator) ||
-		pattern == string(separator)+"**"+string(separator) {
+	// `/**` is a special case - a pattern such as `path/to/a/**` *should* match
+	// `path/to/a` because `a` might be a directory
+	if pattern == "" || pattern == "*" || pattern == "**" || pattern == string(separator)+"**" {
 		return true, nil
 	}
 
