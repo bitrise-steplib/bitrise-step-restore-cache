@@ -31,7 +31,7 @@ workflows:
         run_if: "true"
         inputs:
         # E2E tests run in parallel on different stacks, key should be unique to avoid race conditions
-        - key: "{{ .OS }}-{{ .Arch }}-restore-cache-step-node-modules-{{ checksum \"package-lock.json\" }}"
+        - key: "{{ getenv \"BITRISEIO_STACK_ID\" }}-restore-cache-step-node-modules-{{ checksum \"package-lock.json\" }}"
         - paths: |-
             node_modules
         - verbose: "true"
@@ -47,8 +47,8 @@ workflows:
         is_skippable: false
         inputs:
         - key: |-
-            {{ .OS }}-{{ .Arch }}-restore-cache-step-node-modules-{{ checksum "package-lock.json" }}
-            {{ .OS }}-{{ .Arch }}-restore-cache-step-node-modules-
+            {{ getenv "BITRISEIO_STACK_ID" }}-restore-cache-step-node-modules-{{ checksum "package-lock.json" }}
+            {{ getenv "BITRISEIO_STACK_ID" }}-restore-cache-step-node-modules-
         - verbose: "true"
     - script:
         title: Verify restored folder
