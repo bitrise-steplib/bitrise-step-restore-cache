@@ -101,6 +101,17 @@ inputs:
     - "true"
     - "false"
 
+- retries: 3
+  opts:
+    category: Debugging
+    title: Number of retries
+    summary: Number of retries to attempt when downloading a cache archive fails.
+    description: |-
+      Number of retries to attempt when downloading a cache archive fails.
+
+      The value 0 means no retries are attempted.
+    is_required: true
+
 outputs:
 - BITRISE_CACHE_HIT:
   opts:

@@ -1,6 +1,6 @@
 github.com/BurntSushi/toml v1.1.0/go.mod h1:CxXYINrC8qIiEnFrOxCa7Jy5BFHlXnUU2pbicEuybxQ=
-github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.27 h1:oce9YeKeJhIqX/b9nXGQ1EbyPwHmuy9X7ftGLYbrREY=
-github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.27/go.mod h1:aS6TO1DpbWJoBuAlvmpS/I/FU97C71wv1F/+p+kVrCk=
+github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.28 h1:HW9AueDVlrEN96riYgKAxwvn4VPZo15S0ooL6KC0Zts=
+github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.28/go.mod h1:aS6TO1DpbWJoBuAlvmpS/I/FU97C71wv1F/+p+kVrCk=
 github.com/bitrise-io/go-utils v1.0.1/go.mod h1:ZY1DI+fEpZuFpO9szgDeICM4QbqoWVt0RSY3tRI1heY=
 github.com/bitrise-io/go-utils v1.0.13 h1:1QENhTS/JlKH9F7+/nB+TtbTcor6jGrE6cQ4CJWfp5U=
 github.com/bitrise-io/go-utils v1.0.13/go.mod h1:ZY1DI+fEpZuFpO9szgDeICM4QbqoWVt0RSY3tRI1heY=
