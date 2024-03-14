@@ -101,7 +101,7 @@ inputs:
     - "true"
     - "false"
 
-- retries: 5
+- retries: 3
   opts:
     category: Debugging
     title: Number of retries
