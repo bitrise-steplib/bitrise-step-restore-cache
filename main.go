@@ -8,6 +8,7 @@ import (
 	"github.com/bitrise-io/go-steputils/v2/stepconf"
 	"github.com/bitrise-io/go-utils/v2/command"
 	"github.com/bitrise-io/go-utils/v2/env"
+	"github.com/bitrise-io/go-utils/v2/errorutil"
 	"github.com/bitrise-io/go-utils/v2/exitcode"
 	"github.com/bitrise-io/go-utils/v2/log"
 )
@@ -32,7 +33,8 @@ func run() exitcode.ExitCode {
 
 	err := restoreCacheStep.Run()
 	if err != nil {
-		logger.Errorf(err.Error())
+		formattedMsg := errorutil.FormattedError(err)
+		logger.Errorf("%s", formattedMsg)
 		return exitcode.Failure
 	}
 
