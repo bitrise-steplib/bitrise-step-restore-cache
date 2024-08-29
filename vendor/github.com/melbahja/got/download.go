@@ -298,6 +298,24 @@ func (d *Download) IsRangeable() bool {
 
 // Download chunks
 func (d *Download) dl(dest io.WriterAt, errC chan error) {
+	maxRetries := 2
+	if s := os.Getenv("R2_DOWNLOAD_CHUNK_MAX_RETRIES"); s != "" {
+		parsed, err := strconv.Atoi(s)
+		if err != nil {
+			fmt.Printf("[ERROR] cannot parse %q in R2_DOWNLOAD_CHUNK_MAX_RETRIES: %v\n", s, err)
+		} else {
+			maxRetries = parsed
+		}
+	}
+	threshold := 30 * time.Second
+	if s := os.Getenv("R2_DOWNLOAD_CHUNK_DEVIATION_THRESHOLD"); s != "" {
+		parsed, err := time.ParseDuration(s)
+		if err != nil {
+			fmt.Printf("[ERROR] cannot parse %q in R2_DOWNLOAD_CHUNK_DEVIATION_THRESHOLD: %v\n", s, err)
+		} else {
+			threshold = parsed
+		}
+	}
 
 	var (
 		// Wait group.
@@ -317,7 +335,6 @@ func (d *Download) dl(dest io.WriterAt, errC chan error) {
 		go func(i int) {
 			defer wg.Done()
 
-			maxRetries := 2
 			err := retry.Times(uint(maxRetries)).Try(func(attempt uint) error {
 				// Concurrently download and write chunk
 				start := time.Now()
@@ -335,8 +352,11 @@ func (d *Download) dl(dest io.WriterAt, errC chan error) {
 						return // never interrupt the last try
 					}
 					for range ticker.C {
-						if average > 0 && time.Since(start)-average > 30*time.Second {
-							fmt.Printf("[DEBUG][CHUNK %d][ATTEMPT %d] found outlier, canceling request\n", i, attempt)
+						if average > 0 && time.Since(start)-average > threshold {
+							fmt.Printf(
+								"[DEBUG][CHUNK %d][ATTEMPT %d] found outlier, canceling request, took=%v; average=%v; n=%v\n",
+								i, attempt, time.Since(start)-average, average, n,
+							)
 							cancel()
 							return
 						}
