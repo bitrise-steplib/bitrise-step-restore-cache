@@ -329,19 +329,19 @@ func (d *Download) dl(dest io.WriterAt, errC chan error) {
 				defer ticker.Stop()
 
 				go func() {
-					fmt.Printf("[DEBUG][CHUNK %d][ATTEMPT %d] start ticker", i, attempt)
+					fmt.Printf("[DEBUG][CHUNK %d][ATTEMPT %d] start ticker\n", i, attempt)
 					if attempt == uint(maxRetries) {
-						fmt.Printf("[DEBUG][CHUNK %d][ATTEMPT %d] last try, no ticker usage", i, attempt)
+						fmt.Printf("[DEBUG][CHUNK %d][ATTEMPT %d] last try, no ticker usage\n", i, attempt)
 						return // never interrupt the last try
 					}
 					for range ticker.C {
 						if average > 0 && time.Since(start)-average > 30*time.Second {
-							fmt.Printf("[DEBUG][CHUNK %d][ATTEMPT %d] found outlier, canceling request", i, attempt)
+							fmt.Printf("[DEBUG][CHUNK %d][ATTEMPT %d] found outlier, canceling request\n", i, attempt)
 							cancel()
 							return
 						}
 					}
-					fmt.Printf("[DEBUG][CHUNK %d][ATTEMPT %d] stop ticker", i, attempt)
+					fmt.Printf("[DEBUG][CHUNK %d][ATTEMPT %d] stop ticker\n", i, attempt)
 				}()
 
 				if err := d.DownloadChunk(ctx, d.chunks[i], &OffsetWriter{dest, int64(d.chunks[i].Start)}); err != nil {
@@ -352,7 +352,7 @@ func (d *Download) dl(dest io.WriterAt, errC chan error) {
 				sum += took
 				n++
 				average = sum / time.Duration(n)
-				fmt.Printf("[DEBUG][CHUNK %d][ATTEMPT %d] took=%v; average=%v; n=%v", i, attempt, took, average, n)
+				fmt.Printf("[DEBUG][CHUNK %d][ATTEMPT %d] took=%v; average=%v; n=%v\n", i, attempt, took, average, n)
 				return nil
 			})
 			if err != nil {
