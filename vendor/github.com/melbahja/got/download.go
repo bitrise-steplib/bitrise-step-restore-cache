@@ -355,7 +355,7 @@ func (d *Download) dl(dest io.WriterAt, errC chan error) {
 						if average > 0 && time.Since(start)-average > threshold {
 							fmt.Printf(
 								"[DEBUG][CHUNK %d][ATTEMPT %d] found outlier, canceling request, took=%v; average=%v; n=%v\n",
-								i, attempt, time.Since(start)-average, average, n,
+								i, attempt, time.Since(start), average, n,
 							)
 							cancel()
 							return
