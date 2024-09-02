@@ -4,7 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 
 	"github.com/bitrise-io/go-utils/retry"
@@ -30,6 +33,31 @@ var ErrCacheNotFound = errors.New("no cache archive found for the provided keys"
 // If there is no match for any of the keys, the error is ErrCacheNotFound.
 func Download(ctx context.Context, params DownloadParams, logger log.Logger) (string, error) {
 	retryableHTTPClient := retryhttp.NewClient(logger)
+
+	env := os.Getenv("R2_MAX_IDLE_CONNS_PER_HOST")
+	maxIdleConnsPerHost, err := strconv.Atoi(env)
+	if err == nil {
+		retryableHTTPClient.HTTPClient.Transport.(*http.Transport).MaxIdleConnsPerHost = maxIdleConnsPerHost
+	}
+
+	env = os.Getenv("R2_MAX_IDLE_CONNS")
+	maxIdleConns, err := strconv.Atoi(env)
+	if err == nil {
+		retryableHTTPClient.HTTPClient.Transport.(*http.Transport).MaxIdleConns = maxIdleConns
+	}
+
+	env = os.Getenv("R2_FORCE_ATTEMPT_HTTP2")
+	forceAttemptHTTP2 := env == "true" || env == "1"
+	retryableHTTPClient.HTTPClient.Transport.(*http.Transport).ForceAttemptHTTP2 = forceAttemptHTTP2
+
+	env = os.Getenv("R2_DUALSTACK")
+	dualStack := env == "true" || env == "1"
+	retryableHTTPClient.HTTPClient.Transport.(*http.Transport).DialContext = (&net.Dialer{
+		Timeout:   30 * time.Second,
+		KeepAlive: 30 * time.Second,
+		DualStack: dualStack,
+	}).DialContext
+
 	return downloadWithClient(ctx, retryableHTTPClient, params, logger)
 }
 
