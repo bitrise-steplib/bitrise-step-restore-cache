@@ -1,4 +1,4 @@
-# github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.32.0.20240902095635-65df752a66eb
+# github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.32.0.20240902100209-695f4f630e65
 ## explicit; go 1.17
 github.com/bitrise-io/go-steputils/v2/cache
 github.com/bitrise-io/go-steputils/v2/cache/compression
@@ -25,7 +25,7 @@ github.com/bitrise-io/go-utils/v2/log
 github.com/bitrise-io/go-utils/v2/log/colorstring
 github.com/bitrise-io/go-utils/v2/pathutil
 github.com/bitrise-io/go-utils/v2/retryhttp
-# github.com/bitrise-io/got v0.0.0-20240902095546-120f9a66ef03
+# github.com/bitrise-io/got v0.0.0-20240902100046-b28a311d9a9f
 ## explicit; go 1.18
 github.com/bitrise-io/got
 # github.com/bmatcuk/doublestar/v4 v4.6.1
