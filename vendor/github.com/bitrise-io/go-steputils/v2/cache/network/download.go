@@ -13,9 +13,12 @@ import (
 	"github.com/bitrise-io/go-utils/retry"
 	"github.com/bitrise-io/go-utils/v2/log"
 	"github.com/bitrise-io/go-utils/v2/retryhttp"
+	"github.com/bitrise-io/got"
 	"github.com/hashicorp/go-retryablehttp"
-	"github.com/melbahja/got"
 )
+
+// DefaultDownloader ...
+type DefaultDownloader struct{}
 
 // DownloadParams ...
 type DownloadParams struct {
@@ -24,6 +27,7 @@ type DownloadParams struct {
 	CacheKeys      []string
 	DownloadPath   string
 	NumFullRetries int
+	MaxConcurrency uint
 }
 
 // ErrCacheNotFound ...
@@ -31,7 +35,7 @@ var ErrCacheNotFound = errors.New("no cache archive found for the provided keys"
 
 // Download archive from the cache API based on the provided keys in params.
 // If there is no match for any of the keys, the error is ErrCacheNotFound.
-func Download(ctx context.Context, params DownloadParams, logger log.Logger) (string, error) {
+func (d DefaultDownloader) Download(ctx context.Context, params DownloadParams, logger log.Logger) (string, error) {
 	retryableHTTPClient := retryhttp.NewClient(logger)
 
 	env := os.Getenv("R2_MAX_IDLE_CONNS_PER_HOST")
@@ -94,7 +98,7 @@ func downloadWithClient(ctx context.Context, httpClient *retryablehttp.Client, p
 		}
 
 		logger.Debugf("Downloading archive...")
-		downloadErr := downloadFile(ctx, httpClient.StandardClient(), restoreResponse.URL, params.DownloadPath)
+		downloadErr := downloadFile(ctx, httpClient.StandardClient(), restoreResponse.URL, params.DownloadPath, params.MaxConcurrency, logger)
 		if downloadErr != nil {
 			logger.Debugf("Failed to download archive: %s", downloadErr)
 			return fmt.Errorf("failed to download archive: %w", downloadErr), false
@@ -107,7 +111,7 @@ func downloadWithClient(ctx context.Context, httpClient *retryablehttp.Client, p
 	return matchedKey, err
 }
 
-func downloadFile(ctx context.Context, client *http.Client, url string, dest string) error {
+func downloadFile(ctx context.Context, client *http.Client, url string, dest string, maxConcurrency uint, logger log.Logger) error {
 	downloader := got.New()
 	downloader.Client = client
 
@@ -116,6 +120,9 @@ func downloadFile(ctx context.Context, client *http.Client, url string, dest str
 	// as depending on how downloader is called
 	// either the Client from the downloader or from the Download will be used.
 	gDownload.Client = client
+	gDownload.Concurrency = maxConcurrency
+
+	gDownload.Logger = logger
 
 	err := downloader.Do(gDownload)
 

@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/bitrise-io/go-utils/retry"
+	"github.com/bitrise-io/go-utils/v2/log"
 )
 
 type (
@@ -41,6 +42,12 @@ type (
 		Header []GotHeader
 
 		StopProgress bool
+
+		MaxInterruptPerChunk int
+
+		ChunkDelayThreshold time.Duration
+
+		Logger log.Logger
 
 		path string
 
@@ -296,27 +303,29 @@ func (d *Download) IsRangeable() bool {
 	return d.info.Rangeable
 }
 
+type chunkStatistics struct {
+	sum       time.Duration
+	numChunks int
+}
+
+func (cs *chunkStatistics) update(d time.Duration) {
+	cs.sum += d
+	cs.numChunks++
+}
+
+func (cs *chunkStatistics) average() time.Duration {
+	if cs.numChunks == 0 {
+		return 0
+	}
+	return cs.sum / time.Duration(cs.numChunks)
+}
+
+func (cs *chunkStatistics) String() string {
+	return fmt.Sprintf("[numChunks=%d][avg=%d]", cs.numChunks, cs.average())
+}
+
 // Download chunks
 func (d *Download) dl(dest io.WriterAt, errC chan error) {
-	maxRetries := 2
-	if s := os.Getenv("R2_DOWNLOAD_CHUNK_MAX_RETRIES"); s != "" {
-		parsed, err := strconv.Atoi(s)
-		if err != nil {
-			fmt.Printf("[ERROR] cannot parse %q in R2_DOWNLOAD_CHUNK_MAX_RETRIES: %v\n", s, err)
-		} else {
-			maxRetries = parsed
-		}
-	}
-	threshold := 30 * time.Second
-	if s := os.Getenv("R2_DOWNLOAD_CHUNK_DEVIATION_THRESHOLD"); s != "" {
-		parsed, err := time.ParseDuration(s)
-		if err != nil {
-			fmt.Printf("[ERROR] cannot parse %q in R2_DOWNLOAD_CHUNK_DEVIATION_THRESHOLD: %v\n", s, err)
-		} else {
-			threshold = parsed
-		}
-	}
-
 	var (
 		// Wait group.
 		wg sync.WaitGroup
@@ -325,8 +334,7 @@ func (d *Download) dl(dest io.WriterAt, errC chan error) {
 		max = make(chan int, d.Concurrency)
 	)
 
-	var average, sum time.Duration
-	var n int
+	var stats chunkStatistics
 	for i := 0; i < len(d.chunks); i++ {
 
 		max <- 1
@@ -335,7 +343,17 @@ func (d *Download) dl(dest io.WriterAt, errC chan error) {
 		go func(i int) {
 			defer wg.Done()
 
-			err := retry.Times(uint(maxRetries)).Try(func(attempt uint) error {
+			offsetWriter := &OffsetWriter{dest, int64(d.chunks[i].Start)}
+
+			err := retry.Times(uint(d.MaxInterruptPerChunk)).Try(func(attempt uint) error {
+				log := func(msg string, args ...interface{}) {
+					if d.Logger == nil {
+						return
+					}
+					prefix := fmt.Sprintf("[chunk=%d][attempt=%d]%s ", i, attempt, stats.String())
+					d.Logger.Debugf(prefix+msg, args...)
+				}
+
 				// Concurrently download and write chunk
 				start := time.Now()
 
@@ -346,33 +364,28 @@ func (d *Download) dl(dest io.WriterAt, errC chan error) {
 				defer ticker.Stop()
 
 				go func() {
-					fmt.Printf("[DEBUG][CHUNK %d][ATTEMPT %d] start ticker\n", i, attempt)
-					if attempt == uint(maxRetries) {
-						fmt.Printf("[DEBUG][CHUNK %d][ATTEMPT %d] last try, no ticker usage\n", i, attempt)
+					log("start ticker")
+					if attempt == uint(d.MaxInterruptPerChunk) {
+						log("last try, no ticker usage")
 						return // never interrupt the last try
 					}
 					for range ticker.C {
-						if average > 0 && time.Since(start)-average > threshold {
-							fmt.Printf(
-								"[DEBUG][CHUNK %d][ATTEMPT %d] found outlier, canceling request, took=%v; average=%v; n=%v\n",
-								i, attempt, time.Since(start), average, n,
-							)
+						if stats.numChunks > 0 && time.Since(start)-stats.average() > d.ChunkDelayThreshold {
+							log("found outlier, canceling request, took %s", time.Since(start))
 							cancel()
 							return
 						}
 					}
-					fmt.Printf("[DEBUG][CHUNK %d][ATTEMPT %d] stop ticker\n", i, attempt)
+					log("stop ticker")
 				}()
 
-				if err := d.DownloadChunk(ctx, d.chunks[i], &OffsetWriter{dest, int64(d.chunks[i].Start)}); err != nil {
+				if err := d.DownloadChunk(ctx, offsetWriter, d.chunks[i].End); err != nil {
 					return err
 				}
 
 				took := time.Since(start)
-				sum += took
-				n++
-				average = sum / time.Duration(n)
-				fmt.Printf("[DEBUG][CHUNK %d][ATTEMPT %d] took=%v; average=%v; n=%v\n", i, attempt, took, average, n)
+				stats.update(took)
+				log("finished chunk download, took %s", took)
 				return nil
 			})
 			if err != nil {
@@ -408,7 +421,7 @@ func (d *Download) Path() string {
 }
 
 // DownloadChunk downloads a file chunk.
-func (d *Download) DownloadChunk(ctx context.Context, c *Chunk, dest io.Writer) error {
+func (d *Download) DownloadChunk(ctx context.Context, dest *OffsetWriter, chunkEnd uint64) error {
 
 	var (
 		err error
@@ -420,7 +433,7 @@ func (d *Download) DownloadChunk(ctx context.Context, c *Chunk, dest io.Writer) 
 		return err
 	}
 
-	contentRange := fmt.Sprintf("bytes=%d-%d", c.Start, c.End)
+	contentRange := fmt.Sprintf("bytes=%d-%d", dest.offset, chunkEnd)
 	req.Header.Set("Range", contentRange)
 
 	if res, err = d.Client.Do(req); err != nil {
@@ -428,7 +441,7 @@ func (d *Download) DownloadChunk(ctx context.Context, c *Chunk, dest io.Writer) 
 	}
 
 	// Verify the length
-	if res.ContentLength != int64(c.End-c.Start+1) {
+	if res.ContentLength != int64(chunkEnd-uint64(dest.offset)+1) {
 		return fmt.Errorf(
 			"Range request returned invalid Content-Length: %d however the range was: %s",
 			res.ContentLength, contentRange,
