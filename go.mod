@@ -18,3 +18,7 @@ require (
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 )
+
+replace github.com/bitrise-io/go-steputils/v2 => /Users/lpusok/Develop/go/src/github.com/bitrise-io/go-steputils
+
+replace github.com/bitrise-io/got => /Users/lpusok/Develop/got

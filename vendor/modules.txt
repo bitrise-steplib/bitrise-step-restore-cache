@@ -56,3 +56,5 @@ github.com/klauspost/compress/zstd/internal/xxhash
 # github.com/mitchellh/mapstructure v1.5.0
 ## explicit; go 1.14
 github.com/mitchellh/mapstructure
+# github.com/bitrise-io/go-steputils/v2 => /Users/lpusok/Develop/go/src/github.com/bitrise-io/go-steputils
+# github.com/bitrise-io/got => /Users/lpusok/Develop/got

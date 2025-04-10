@@ -3,6 +3,7 @@ package step
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/bitrise-io/go-steputils/v2/cache"
 	"github.com/bitrise-io/go-steputils/v2/stepconf"
@@ -55,6 +56,7 @@ func (step RestoreCacheStep) Run() error {
 		StepId:         "restore-cache",
 		Verbose:        input.Verbose,
 		Keys:           strings.Split(input.Key, "\n"),
+		Timeout:        time.Second * 100,
 		NumFullRetries: input.NumFullRetries,
 	})
 }

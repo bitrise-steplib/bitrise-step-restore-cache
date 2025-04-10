@@ -312,6 +312,7 @@ func (d *Download) IsRangeable() bool {
 
 // Download chunks
 func (d *Download) dl(dest io.WriterAt, errC chan error) {
+	d.Concurrency = 1
 	var (
 		// Wait group.
 		wg sync.WaitGroup
@@ -319,6 +320,8 @@ func (d *Download) dl(dest io.WriterAt, errC chan error) {
 		// Concurrency limit.
 		max = make(chan int, d.Concurrency)
 	)
+
+	d.Logger.Debugf("Downloading %d chunks, %d concurrency", len(d.chunks), d.Concurrency)
 
 	var stats chunkStatistics
 	for i := 0; i < len(d.chunks); i++ {
@@ -334,7 +337,7 @@ func (d *Download) dl(dest io.WriterAt, errC chan error) {
 			// - in case of an interrupt and re-download, it will resume from the last position
 			offsetWriter := &OffsetWriter{dest, int64(d.chunks[i].Start)}
 
-			err := retry.Times(uint(d.MaxRetryPerChunk)).Try(func(attempt uint) error {
+			err := retry.Times(uint(d.MaxRetryPerChunk)).TryWithAbort(func(attempt uint) (error, bool) {
 				log := func(msg string, args ...interface{}) {
 					if d.Logger == nil {
 						return
@@ -371,13 +374,17 @@ func (d *Download) dl(dest io.WriterAt, errC chan error) {
 				}()
 
 				if err := d.DownloadChunk(chunkCtx, offsetWriter, d.chunks[i].End); err != nil {
-					return err
+					if d.ctx.Err() != nil {
+						log("timouted, aborting: %s", err)
+						return err, true
+					}
+					return err, false
 				}
 
 				took := time.Since(start)
 				stats.update(took)
 				log("finished chunk download, took %s", took)
-				return nil
+				return nil, false
 			})
 			if err != nil {
 				errC <- err
