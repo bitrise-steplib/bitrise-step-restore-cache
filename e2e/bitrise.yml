@@ -7,9 +7,6 @@ app:
   - BITRISEIO_CACHE_SERVICE_URL: $BITRISEIO_CACHE_SERVICE_URL
   - CACHE_API_CLIENT_SECRET: $CACHE_API_CLIENT_SECRET
 
-tools:
-  java: 17:latest
-
 workflows:
   test_npm:
     envs:
