@@ -7,6 +7,9 @@ app:
   - BITRISEIO_CACHE_SERVICE_URL: $BITRISEIO_CACHE_SERVICE_URL
   - CACHE_API_CLIENT_SECRET: $CACHE_API_CLIENT_SECRET
 
+tools:
+  java: 17:latest
+
 workflows:
   test_npm:
     envs:
@@ -168,6 +171,12 @@ workflows:
         - content: |-
             set -ex
             sudo rm -rf .gradle
+    - script:
+        title: Delete local Gradle caches
+        run_if: "{{ .IsCI }}"
+        inputs:
+        - content: |-
+            set -ex
             sudo rm -rf ~/.gradle
     - path::./:
         title: Restore cache
@@ -176,16 +185,19 @@ workflows:
         inputs:
         - key: gradle-config-cache-v1-{{ .OS }}-{{ .Workflow }}-{{ checksum "gradle/wrapper/gradle-wrapper.properties" "**/*.versions.toml" "**/*.gradle.kts" }}
         - verbose: "true"
-    - git::https://github.com/bitrise-steplib/bitrise-step-check-step-outputs.git@main:
+    - script:
         title: Verify restored folder
-        is_always_run: true
         inputs:
-        - envs: |-
-            BITRISE_CACHE_HIT
-        - files:
-        - dirs: |-
-            ~/.gradle/caches
-            ~/.gradle/wrapper
+        - content: |-
+            set -ex
+            if [ ! -d ~/.gradle/caches ]; then
+              echo "~/.gradle/caches directory doesn't exist"
+              exit 1
+            fi
+            if [ ! -d ~/.gradle/wrapper ]; then
+              echo "~/.gradle/wrapper directory doesn't exist"
+              exit 1
+            fi
     - script:
         title: Verify exact cache hit
         inputs:
