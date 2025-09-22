@@ -134,7 +134,7 @@ workflows:
         - module: app
         - variant: debug
 
-test_gradle_config_cache:
+  test_gradle_config_cache:
     envs:
     - TEST_APP_URL: https://github.com/bitrise-io/Bitrise-Android-Sample
     - BRANCH: main
@@ -151,7 +151,7 @@ test_gradle_config_cache:
         inputs:
         - module: app
         - variant: debug
-    - git::https://github.com/bitrise-steplib/bitrise-step-save-cache.git@main:
+    - git::https://github.com/bitrise-steplib/bitrise-step-save-cache.git@1.4.0:
         title: Save cache
         run_if: "true"
         inputs:
@@ -193,8 +193,8 @@ test_gradle_config_cache:
             set -ex
             echo: "BITRISE_CACHE_HIT: {$BITRISE_CACHE_HIT}"
             if [ "$BITRISE_CACHE_HIT" != "exact" ]; then
-              echo "Cache was not restored properly"
-              exit 1
+                echo "Cache was not restored properly"
+                exit 1
             fi
     - android-build:
         title: Build APK again
