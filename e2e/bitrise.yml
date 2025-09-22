@@ -1,6 +1,5 @@
 format_version: "11"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
-
 app:
   envs:
   # Shared secrets for testing, use a .bitrise.secrets.yml file to define these locally
@@ -108,16 +107,19 @@ workflows:
         inputs:
         - key: "{{ getenv \"BITRISEIO_STACK_ID\" }}-gradle-cache-{{ checksum \"**/*.gradle\" \"**/gradle-wrapper.properties\" }}"
         - verbose: "true"
-    - git::https://github.com/bitrise-steplib/bitrise-step-check-step-outputs.git@main:
+    - script:
         title: Verify restored folder
-        is_always_run: true
         inputs:
-        - envs: |-
-            BITRISE_CACHE_HIT
-        - files:
-        - dirs: |-
-            ~/.gradle/caches
-            ~/.gradle/wrapper
+        - content: |-
+            set -ex
+            if [ ! -d ~/.gradle/caches ]; then
+              echo "~/.gradle/caches directory doesn't exist"
+              exit 1
+            fi
+            if [ ! -d ~/.gradle/wrapper ]; then
+              echo "~/.gradle/wrapper directory doesn't exist"
+              exit 1
+            fi
     - script:
         title: Verify exact cache hit
         inputs:
