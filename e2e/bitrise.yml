@@ -125,7 +125,7 @@ workflows:
         inputs:
         - content: |-
             set -ex
-            echo: "BITRISE_CACHE_HIT: {$BITRISE_CACHE_HIT}"
+            echo "BITRISE_CACHE_HIT: ${BITRISE_CACHE_HIT}"
             if [ "$BITRISE_CACHE_HIT" != "exact" ]; then
               echo "Cache was not restored properly"
               exit 1
