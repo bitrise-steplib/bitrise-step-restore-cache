@@ -1,6 +1,5 @@
 format_version: "11"
 default_step_lib_source: https://github.com/bitrise-io/bitrise-steplib.git
-
 app:
   envs:
   # Shared secrets for testing, use a .bitrise.secrets.yml file to define these locally
@@ -121,7 +120,16 @@ workflows:
               echo "~/.gradle/wrapper directory doesn't exist"
               exit 1
             fi
-
+    - script:
+        title: Verify exact cache hit
+        inputs:
+        - content: |-
+            set -ex
+            echo "BITRISE_CACHE_HIT: ${BITRISE_CACHE_HIT}"
+            if [ "$BITRISE_CACHE_HIT" != "exact" ]; then
+              echo "Cache was not restored properly"
+              exit 1
+            fi
     - android-build:
         title: Build APK again
         inputs:
