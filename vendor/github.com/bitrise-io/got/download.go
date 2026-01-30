@@ -18,6 +18,10 @@ import (
 	"github.com/bitrise-io/go-utils/v2/log"
 )
 
+const (
+	smallFileSizeThreshold = 10
+)
+
 type (
 
 	// Info holds downloadable file info.
@@ -501,6 +505,10 @@ func getDefaultChunkSize(totalSize, min, max, concurrency uint64) uint64 {
 	// When chunk size > total file size, divide chunk / 2
 	if cs >= totalSize {
 		cs = totalSize / 2
+	}
+
+	if totalSize <= smallFileSizeThreshold {
+		cs = totalSize
 	}
 
 	return cs
