@@ -295,7 +295,7 @@ func (d *Download) AvgSpeed() uint64 {
 
 // TotalCost returns download duration.
 func (d *Download) TotalCost() time.Duration {
-	return time.Now().Sub(d.startedAt)
+	return time.Since(d.startedAt)
 }
 
 // Write updates progress size.
@@ -312,7 +312,6 @@ func (d *Download) IsRangeable() bool {
 
 // Download chunks
 func (d *Download) dl(dest io.WriterAt, errC chan error) {
-	d.Concurrency = 1
 	var (
 		// Wait group.
 		wg sync.WaitGroup
@@ -375,6 +374,7 @@ func (d *Download) dl(dest io.WriterAt, errC chan error) {
 
 				if err := d.DownloadChunk(chunkCtx, offsetWriter, d.chunks[i].End); err != nil {
 					if d.ctx.Err() != nil {
+						// Do not retry if context cancelled or deadline exceeded
 						log("timouted, aborting: %s", err)
 						return err, true
 					}
