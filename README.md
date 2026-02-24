@@ -69,7 +69,7 @@ inputs:
 
 ## 🧩 Get started
 
-Add this step directly to your workflow in the [Bitrise Workflow Editor](https://devcenter.bitrise.io/steps-and-workflows/steps-and-workflows-index/).
+Add this step directly to your workflow in the [Bitrise Workflow Editor](https://docs.bitrise.io/en/bitrise-ci/workflows-and-pipelines/steps/adding-steps-to-a-workflow.html).
 
 You can also run this step directly with [Bitrise CLI](https://github.com/bitrise-io/bitrise).
 
@@ -128,6 +128,7 @@ steps:
 | --- | --- | --- | --- |
 | `key` | Keys used for restoring a cache archive. One cache key per line in priority order.  The key supports template elements for creating dynamic cache keys. These dynamic keys change the final key value based on the build environment or files in the repo in order to create new cache archives. See the Step description for more details and examples.  The maximum length of a key is 512 characters (longer keys get truncated) and you can list at most 8 keys using this input. Commas (`,`) are not allowed in keys. | required |  |
 | `verbose` | Enable logging additional information for troubleshooting. | required | `false` |
+| `timeout` | Timeout in seconds | required | `600` |
 | `retries` | Number of retries to attempt when downloading a cache archive fails.  The value 0 means no retries are attempted. | required | `3` |
 </details>
 
@@ -143,12 +144,11 @@ steps:
 
 We welcome [pull requests](https://github.com/bitrise-steplib/bitrise-step-restore-cache/pulls) and [issues](https://github.com/bitrise-steplib/bitrise-step-restore-cache/issues) against this repository.
 
-For pull requests, work on your changes in a forked repository and use the Bitrise CLI to [run step tests locally](https://devcenter.bitrise.io/bitrise-cli/run-your-first-build/).
+For pull requests, work on your changes in a forked repository and use the Bitrise CLI to [run step tests locally](https://docs.bitrise.io/en/bitrise-ci/bitrise-cli/running-your-first-local-build-with-the-cli.html).
 
 **Note:** this step's end-to-end tests (defined in `e2e/bitrise.yml`) are working with secrets which are intentionally not stored in this repo. External contributors won't be able to run those tests. Don't worry, if you open a PR with your contribution, we will help with running tests and make sure that they pass.
 
 
 Learn more about developing steps:
 
-- [Create your own step](https://devcenter.bitrise.io/contributors/create-your-own-step/)
-- [Testing your Step](https://devcenter.bitrise.io/contributors/testing-and-versioning-your-steps/)
+- [Create your own step](https://docs.bitrise.io/en/bitrise-ci/workflows-and-pipelines/developing-your-own-bitrise-step/developing-a-new-step.html)
