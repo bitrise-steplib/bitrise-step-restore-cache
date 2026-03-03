@@ -1,10 +1,11 @@
-# github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.39
+# github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.46
 ## explicit; go 1.17
 github.com/bitrise-io/go-steputils/v2/cache
 github.com/bitrise-io/go-steputils/v2/cache/compression
 github.com/bitrise-io/go-steputils/v2/cache/keytemplate
 github.com/bitrise-io/go-steputils/v2/cache/network
 github.com/bitrise-io/go-steputils/v2/export
+github.com/bitrise-io/go-steputils/v2/internal
 github.com/bitrise-io/go-steputils/v2/stepconf
 # github.com/bitrise-io/go-utils v1.0.15
 ## explicit; go 1.13
@@ -14,18 +15,21 @@ github.com/bitrise-io/go-utils/log
 github.com/bitrise-io/go-utils/pathutil
 github.com/bitrise-io/go-utils/retry
 github.com/bitrise-io/go-utils/ziputil
-# github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.27
+# github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.33
 ## explicit; go 1.17
 github.com/bitrise-io/go-utils/v2/analytics
 github.com/bitrise-io/go-utils/v2/command
 github.com/bitrise-io/go-utils/v2/env
 github.com/bitrise-io/go-utils/v2/errorutil
 github.com/bitrise-io/go-utils/v2/exitcode
+github.com/bitrise-io/go-utils/v2/filedownloader
+github.com/bitrise-io/go-utils/v2/fileutil
 github.com/bitrise-io/go-utils/v2/log
 github.com/bitrise-io/go-utils/v2/log/colorstring
+github.com/bitrise-io/go-utils/v2/parseutil
 github.com/bitrise-io/go-utils/v2/pathutil
 github.com/bitrise-io/go-utils/v2/retryhttp
-# github.com/bitrise-io/got v0.0.0-20250613112826-9af8c0e04db5
+# github.com/bitrise-io/got v0.0.0-20260223134234-6d4aa9f90a75
 ## explicit; go 1.18
 github.com/bitrise-io/got
 # github.com/bmatcuk/doublestar/v4 v4.9.1

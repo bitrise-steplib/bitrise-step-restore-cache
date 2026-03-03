@@ -39,7 +39,7 @@ workflows:
         inputs:
         - content: |-
             set -ex
-            sudo rm -rf node_modules
+            rm -rf node_modules
     - path::./:
         title: Restore cache
         run_if: "true"

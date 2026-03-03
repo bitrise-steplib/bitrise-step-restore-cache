@@ -101,6 +101,15 @@ inputs:
     - "true"
     - "false"
 
+- timeout: 600
+  opts:
+    category: Debugging
+    title: Timeout
+    summary: Timeout in seconds
+    description: |-
+      Timeout in seconds
+    is_required: true
+
 - retries: 3
   opts:
     category: Debugging
