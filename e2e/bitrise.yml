@@ -95,7 +95,7 @@ workflows:
             # Skip ~/.gradle/init.d — populated by the Bitrise stack image and
             # held open on the noble-24.04 docker stack, which causes
             # `rm -rf ~/.gradle` to fail with "Device or resource busy".
-            find ~/.gradle -mindepth 1 -maxdepth 1 ! -name init.d -exec rm -rf {} +
+            mkdir -p ~/.gradle && find ~/.gradle -mindepth 1 -maxdepth 1 ! -name init.d -exec rm -rf {} +
             rm -rf .gradle
     - path::./:
         title: Restore cache
