@@ -3,13 +3,12 @@ module github.com/bitrise-steplib/bitrise-step-restore-cache
 go 1.22
 
 require (
-	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.52
-	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.34
+	github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.62
+	github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.39
 )
 
 require (
-	github.com/bitrise-io/go-utils v1.0.15 // indirect
-	github.com/bitrise-io/got v0.0.0-20260223134234-6d4aa9f90a75 // indirect
+	github.com/bitrise-io/got v0.0.0-20260831101303-9092ae48de2b // indirect
 	github.com/bmatcuk/doublestar/v4 v4.9.1 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/gofrs/uuid/v5 v5.3.2 // indirect
