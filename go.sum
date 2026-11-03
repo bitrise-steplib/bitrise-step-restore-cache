@@ -1,5 +1,5 @@
-github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.62 h1:EEQLBNmaAijNzK8sRgxi5RVGxYUBVXZ5cfk8huVQi5Y=
-github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.62/go.mod h1:XrqiAQ3NY/T3gC50n7jCthpkYF8o9zDtwPDqy59pbKo=
+github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.65 h1:bAygxm0GNy/9oB1cTKUqMmVcvlAsShA0Cvu/4ZGIfbo=
+github.com/bitrise-io/go-steputils/v2 v2.0.0-alpha.65/go.mod h1:XrqiAQ3NY/T3gC50n7jCthpkYF8o9zDtwPDqy59pbKo=
 github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.39 h1:QbWclC8fOI9rho//WXZFXmcbho+FPoL8FegL+/JR27o=
 github.com/bitrise-io/go-utils/v2 v2.0.0-alpha.39/go.mod h1:5Z/vkUZ2BIY7IAVlMGns3ypRjd+J872YBSCJaLWVo/U=
 github.com/bitrise-io/got v0.0.0-20260831101303-9092ae48de2b h1:s6RLR5q4SzvWdh6/r00PUF+bjrGJ9bQGKmfofRUq3NU=

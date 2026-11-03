@@ -10,11 +10,13 @@ import (
 // Config holds configuration for the chunk downloader.
 type Config struct {
 	// Concurrency is the number of parallel chunk downloads.
-	// 0 means auto (got default: min(NumCPU*3, 20), minimum 4).
+	// 0 means auto (got default: min(NumCPU*3, 20), minimum 4; OpenStream: 8).
 	Concurrency uint
 
 	// MaxRetryPerChunk controls how many times to interrupt and retry a slow chunk.
-	// If zero, chunk download monitoring is disabled.
+	// If zero, chunk download monitoring is disabled (OpenStream: no retries).
+	// OpenStream backs off briefly between retries of 429/5xx; on the chunk Read
+	// is blocked on, that spends a downstream client's idle budget, so keep it low.
 	MaxRetryPerChunk int
 
 	// ChunkRetryThreshold is the deviation from the moving average
@@ -22,8 +24,23 @@ type Config struct {
 	ChunkRetryThreshold time.Duration
 
 	// HTTPClient is the HTTP client used for download requests.
-	// If nil, got's default client is used.
+	// If nil, got's default client is used (OpenStream: a private client with
+	// the env transport tuning applied; a non-nil client is used as is).
 	HTTPClient *http.Client
+
+	// StreamChunkSize is the Range request size for OpenStream. 0 means 16MB.
+	StreamChunkSize int64
+
+	// StreamIdleTimeout cancels and retries an OpenStream chunk attempt that
+	// receives no bytes for this long. 0 means 2s.
+	StreamIdleTimeout time.Duration
+
+	// StreamHedgeDelay starts a second, racing request for the chunk Read is
+	// blocked on once it has waited this long (or 3x its average wait so far, if
+	// that is longer, capped at 2s); the first success wins. It catches chunks that
+	// trickle in too slowly to trip StreamIdleTimeout. 0 means 1s, negative
+	// disables hedging.
+	StreamHedgeDelay time.Duration
 }
 
 // DefaultConfig returns the default configuration.
